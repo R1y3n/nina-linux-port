@@ -20,7 +20,7 @@ jobs:
           sudo dpkg --add-architecture i386
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
-            gcc-multilib g++-multilib make python3 python3-pefile \
+            gcc-multilib g++-multilib make python3 python3-pefile python3-capstone \
             libc6-dev-i386 libsdl2-dev:i386 libgl-dev:i386 libx11-dev:i386 nasm
 
       - name: Build Engine Host (lithtech_linux)
@@ -30,6 +30,7 @@ jobs:
           echo "Using LT_EXE=$LT_EXE"
           cd lt_re
           python3 build_images.py
+          python3 lift_all.py
           cd linux
           bash build_linux.sh
 
