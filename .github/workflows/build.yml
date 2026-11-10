@@ -24,8 +24,9 @@ jobs:
           EXE_PATH=$(find . -maxdepth 3 -iname "lithtechreal.exe" -o -iname "lithtech.exe" | head -n 1)
           export LT_EXE="$(pwd)/${EXE_PATH#./}"
           echo "Using LT_EXE=$LT_EXE"
-          python3 lt_re/build_images.py
-          cd lt_re/linux
+          cd lt_re
+          python3 build_images.py
+          cd linux
           bash build_linux.sh
 
       - name: Build Native Renderer (opengl.ren)
