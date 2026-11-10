@@ -1,0 +1,79 @@
+[
+[
+"extent mismatch",
+"ObjectSearchDlg_437760",
+"0x437760",
+"1234"
+],
+[
+"extent mismatch",
+"consolecommands_422f00",
+"0x422f00",
+"1"
+],
+[
+"extent mismatch",
+"FUN_00437d70",
+"0x437d70",
+"375"
+],
+[
+"no VA",
+"?"
+],
+[
+"unresolved je target",
+"FUN_004ac8b0",
+"0x4aca16"
+],
+[
+"unresolved jmp target",
+"FUN_004ac8b0",
+"0x4aca16"
+],
+[
+"unresolved je target",
+"FUN_004ac720",
+"0x4ac890"
+],
+[
+"unresolved jmp target",
+"FUN_004ac720",
+"0x4ac890"
+],
+[
+"unresolved je target",
+"FUN_004ac5c0",
+"0x4ac708"
+],
+[
+"unresolved jmp target",
+"FUN_004ac5c0",
+"0x4ac708"
+],
+[
+"unresolved je target",
+"FUN_004ac460",
+"0x4ac5a8"
+],
+[
+"unresolved jmp target",
+"FUN_004ac460",
+"0x4ac5a8"
+],
+[
+"unresolved jne target",
+"FUN_004bc04d",
+"0x4c16fe"
+],
+[
+"unresolved jne target",
+"FUN_004bc04d",
+"0x4c16fe"
+],
+[
+"unresolved call target",
+"FUN_004bc04d",
+"0x4c1617"
+]
+]

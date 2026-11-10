@@ -1,0 +1,39 @@
+#include <windows.h>
+#include "@CMAKE_CURRENT_SOURCE_DIR@/src/resources/resource.h"
+
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+
+STRINGTABLE
+BEGIN
+    IDS_RENDERER_NAME "LithFAQ OpenGL Renderer"
+END
+
+// GLSL source files are compiled into opengl.ren as raw-data resources.
+IDR_SHADER_RENDERER_QUAD_VERT RCDATA "@CMAKE_CURRENT_SOURCE_DIR@/src/resources/shaders/renderer_quad.vert.glsl"
+IDR_SHADER_RENDERER_QUAD_FRAG RCDATA "@CMAKE_CURRENT_SOURCE_DIR@/src/resources/shaders/renderer_quad.frag.glsl"
+IDR_SHADER_SCENE_POST_VERT RCDATA "@CMAKE_CURRENT_SOURCE_DIR@/src/resources/shaders/scene_post.vert.glsl"
+IDR_SHADER_SCENE_POST_FRAG RCDATA "@CMAKE_CURRENT_SOURCE_DIR@/src/resources/shaders/scene_post.frag.glsl"
+IDR_SHADER_FULLSCREEN_VERT RCDATA "@CMAKE_CURRENT_SOURCE_DIR@/src/resources/shaders/fullscreen.vert.glsl"
+IDR_SHADER_SSAO_FRAG RCDATA "@CMAKE_CURRENT_SOURCE_DIR@/src/resources/shaders/ssao.frag.glsl"
+IDR_SHADER_SSR_FRAG RCDATA "@CMAKE_CURRENT_SOURCE_DIR@/src/resources/shaders/ssr.frag.glsl"
+IDR_SHADER_BLUR_FRAG RCDATA "@CMAKE_CURRENT_SOURCE_DIR@/src/resources/shaders/blur.frag.glsl"
+IDR_SHADER_SSAO_COMPOSITE_FRAG RCDATA "@CMAKE_CURRENT_SOURCE_DIR@/src/resources/shaders/ssao_composite.frag.glsl"
+IDR_SHADER_SSR_COMPOSITE_FRAG RCDATA "@CMAKE_CURRENT_SOURCE_DIR@/src/resources/shaders/ssr_composite.frag.glsl"
+IDR_SHADER_QUALITY_DEBUG_FRAG RCDATA "@CMAKE_CURRENT_SOURCE_DIR@/src/resources/shaders/quality_debug.frag.glsl"
+IDR_SHADER_BLOOM_EXTRACT_FRAG RCDATA "@CMAKE_CURRENT_SOURCE_DIR@/src/resources/shaders/bloom_extract.frag.glsl"
+IDR_SHADER_BLOOM_BLUR_FRAG RCDATA "@CMAKE_CURRENT_SOURCE_DIR@/src/resources/shaders/bloom_blur.frag.glsl"
+IDR_SHADER_EXPOSURE_FRAG RCDATA "@CMAKE_CURRENT_SOURCE_DIR@/src/resources/shaders/exposure.frag.glsl"
+IDR_SHADER_EXPOSURE_COMPOSITE_FRAG RCDATA "@CMAKE_CURRENT_SOURCE_DIR@/src/resources/shaders/exposure_composite.frag.glsl"
+IDR_SHADER_FX_VERT RCDATA "@CMAKE_CURRENT_SOURCE_DIR@/src/resources/shaders/fx.vert.glsl"
+IDR_SHADER_FX_FRAG RCDATA "@CMAKE_CURRENT_SOURCE_DIR@/src/resources/shaders/fx.frag.glsl"
+IDR_SHADER_MODEL_BATCH_VERT RCDATA "@CMAKE_CURRENT_SOURCE_DIR@/src/resources/shaders/model_batch.vert.glsl"
+IDR_SHADER_MODEL_BATCH_FRAG RCDATA "@CMAKE_CURRENT_SOURCE_DIR@/src/resources/shaders/model_batch.frag.glsl"
+IDR_SHADER_MODEL_LEGACY_VERT RCDATA "@CMAKE_CURRENT_SOURCE_DIR@/src/resources/shaders/model_legacy.vert.glsl"
+IDR_SHADER_MODEL_LEGACY_FRAG RCDATA "@CMAKE_CURRENT_SOURCE_DIR@/src/resources/shaders/model_legacy.frag.glsl"
+IDR_SHADER_CHARACTER_SHADOW_VERT RCDATA "@CMAKE_CURRENT_SOURCE_DIR@/src/resources/shaders/character_shadow.vert.glsl"
+IDR_SHADER_CHARACTER_SHADOW_FRAG RCDATA "@CMAKE_CURRENT_SOURCE_DIR@/src/resources/shaders/character_shadow.frag.glsl"
+IDR_SHADER_SPRITE_VERT RCDATA "@CMAKE_CURRENT_SOURCE_DIR@/src/resources/shaders/sprite.vert.glsl"
+IDR_SHADER_SPRITE_FRAG RCDATA "@CMAKE_CURRENT_SOURCE_DIR@/src/resources/shaders/sprite.frag.glsl"
+IDR_SHADER_LIGHTMAP_COMP RCDATA "@CMAKE_CURRENT_SOURCE_DIR@/src/resources/shaders/lightmap.comp.glsl"
+IDR_SHADER_WORLD_VERT RCDATA "@CMAKE_CURRENT_SOURCE_DIR@/src/resources/shaders/world.vert.glsl"
+IDR_SHADER_WORLD_FRAG RCDATA "@CMAKE_CURRENT_SOURCE_DIR@/src/resources/shaders/world.frag.glsl"

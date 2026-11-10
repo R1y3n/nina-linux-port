@@ -1,0 +1,39 @@
+name: Build Native Engine & Renderer
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install 32-bit Multilib Dependencies
+        run: |
+          sudo dpkg --add-architecture i386
+          sudo apt-get update
+          sudo apt-get install -y g++-multilib make python3 libsdl2-dev:i386 libgl-dev:i386 libx11-dev:i386
+
+      - name: Build Engine Host (lithtech_linux)
+        run: |
+          python3 lt_re/build_images.py
+          cd lt_re/linux
+          bash build_linux.sh
+
+      - name: Build Native Renderer (opengl.ren)
+        run: |
+          cd port
+          make -j$(nproc)
+
+      - name: Upload Native Binaries Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-native-binaries
+          path: |
+            lt_re/linux/lithtech_linux
+            port/opengl.ren

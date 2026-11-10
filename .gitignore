@@ -1,0 +1,6 @@
+*.tar.gz
+*.png
+lt_re/linux/lithtech_linux
+port/opengl.ren
+lt_re/obj/
+*.o
