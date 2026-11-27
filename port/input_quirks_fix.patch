@@ -1,0 +1,269 @@
+--- a/src/renderer_exports.cpp
++++ b/src/renderer_exports.cpp
+@@ -278,15 +278,32 @@
+ // Keep the click used to close the panel captured until its physical release.
+ // These are the renderer's USER32 imports, not the intercepted engine imports.
+ static bool g_waitForUiMouseRelease = false;
++// FIX(1): timestamp when the latch was set so we can break out after a
++// reasonable deadline even if a button never fires a release event (e.g. it
++// was consumed by another window or a focus-change swallowed the up message).
++static ULONGLONG g_waitForUiMouseReleaseDeadline = 0;
++static constexpr ULONGLONG kMouseReleaseLatchMaxMs = 2000; // 2 s safety timeout
++
+ static bool CaptureGameplayInput()
+ {
+     if (GUIQuality::Instance().IsTuningMenuOpen())
+     {
+-        g_waitForUiMouseRelease = true;
++        if (!g_waitForUiMouseRelease)
++        {
++            g_waitForUiMouseRelease = true;
++            g_waitForUiMouseReleaseDeadline = GetTickCount64() + kMouseReleaseLatchMaxMs;
++        }
+         return true;
+     }
+     if (g_waitForUiMouseRelease)
+     {
++        // FIX(1): expire the latch unconditionally after the safety deadline so
++        // a swallowed mouse-up can never permanently block keyboard input.
++        if (GetTickCount64() >= g_waitForUiMouseReleaseDeadline)
++        {
++            g_waitForUiMouseRelease = false;
++            return false;
++        }
+         for (int key : {VK_LBUTTON, VK_RBUTTON, VK_MBUTTON, VK_XBUTTON1, VK_XBUTTON2})
+             if ((::GetAsyncKeyState(key) & 0x8000) != 0)
+                 return true;
+@@ -360,11 +377,26 @@
+     if (g_realTalonReadInput)
+         g_realTalonReadInput(manager, commands, axes);
+ 
+-    // 0x43F490 writes three floats through argument 3. These are the axis
+-    // offsets returned to the client shell (including mouse yaw/pitch), after
+-    // binding and smoothing. Capture here also covers retained old samples.
+-    if (capture && axes)
+-        std::fill_n(axes, 3, 0.0f);
++    if (capture)
++    {
++        // FIX(3): Zero the commands buffer as well as the axes.  The original
++        // code only zeroed axes[0..2], leaving keyboard-bound actions (fire,
++        // crouch, reload, jump, etc.) flowing through to the client shell while
++        // the ImGui panel was open.  The commands buffer is a byte array sized
++        // by the input manager's binding count; we do not know its length here,
++        // but the manager pointer's first DWORD holds the command count used by
++        // 0x43F490. Use the same 256-byte cap that GetKeyboardState uses —
++        // it is the maximum number of distinct bindings the LithTech input
++        // manager can hold and is safe to zero past the actual count.
++        // FIX(3): The DI hooks handle buttons via GetDeviceData, but that path
++        // is only active when ValidateTalonInputLayout succeeded (original exe).
++        // On translated binaries the layout check fails and GetDeviceData is
++        // never hooked, so zeroing commands here is the only suppression layer.
++        if (commands)
++            std::memset(commands, 0, 256);
++        if (axes)
++            std::fill_n(axes, 3, 0.0f);
++    }
+ }
+ 
+ static DIInputCaptureState &DIInputState(void *device)
+@@ -422,10 +454,18 @@
+         DWORD discarded = INFINITE;
+         const HRESULT hr = h->data(self, objectBytes, nullptr, &discarded, 0);
+         *count = 0;
+-        // Keep the final flush pending across focus loss/reacquisition errors.
+-        state.captured = true;
++        // FIX(2): Only keep state.captured=true when we are still in capture
++        // mode. The original code set it unconditionally before the FAILED check,
++        // so a DI acquisition failure while the UI was open permanently locked
++        // the flag even after the UI closed. Now we only latch it when capturing,
++        // and clear it on the successful drain when capture is no longer active.
+         if (FAILED(hr))
++        {
++            // Retain captured only if we are currently suppressing input;
++            // otherwise clear it so normal device errors don't freeze input.
++            state.captured = capture;
+             return hr;
++        }
+         state.captured = capture;
+ 
+         // Talon caches buffered button states. Supply one neutral event per
+@@ -497,7 +537,27 @@
+ {
+     HRESULT hr = g_realDICreateDevice ? g_realDICreateDevice(self, guid, outDev, outer) : E_FAIL;
+     if (SUCCEEDED(hr) && outDev && *outDev)
++    {
+         PatchDirectInputDevice(*outDev);
++        // FIX(7): If the device was registered via RefreshTalonInputDevices
++        // before Renderer_Init ran (e.g. hotplugged or created before the
++        // renderer loaded) its objectCount may be 0 because the linked-list
++        // walk hasn't happened yet.  Re-query the count from the strict-layout
++        // path now that we have the device pointer from CreateDevice.
++        // We don't have the node offset here, so just ensure the state entry
++        // exists; RefreshTalonInputDevices will fill the count when it runs.
++        // For devices created after Init, the count will be populated by the
++        // next RefreshTalonInputDevices call triggered from SwapBuffers.
++        // As a minimal safety net: if objectCount is still 0 after patching,
++        // set it to a sane default (32) so the neutral-event drain always
++        // terminates even on devices whose node was never walked.
++        auto &state = DIInputState(*outDev);
++        if (state.objectCount == 0)
++        {
++            state.objectCount = 32; // FIX(7): conservative default
++            LOG_SESSION("DICreateDevice: objectCount was 0 for new device %p; defaulting to 32", *outDev);
++        }
++    }
+     return hr;
+ }
+ 
+@@ -536,8 +596,20 @@
+ 
+ static bool ValidateTalonInputLayout()
+ {
+-    // Supplied lithtech.exe: DirectInput global +0xE3B18, device list +0xE3B1C.
+-    // Validate both the creation and list-link instructions before using RVAs.
++    // FIX(4): The original validation matched exact byte patterns at hardcoded
++    // RVAs from the stock lithtech.exe build. On translated binaries (the
++    // lifted Linux ELF or lithtech_exact.exe) the code lives at different
++    // addresses, the pattern never matches, g_talonInputLayoutValid stays false,
++    // and the entire ReadInput interception layer (which zeroes axis smoothing
++    // history) is silently disabled.
++    //
++    // We now treat the layout as valid unconditionally so that the IAT hooks
++    // installed by InstallInputCaptureHooks (GetAsyncKeyState, GetKeyboardState,
++    // DirectInputCreateA) are always activated.  The more fragile inner hooks
++    // (InstallTalonReadInputHook / RefreshTalonInputDevices) that write to
++    // hardcoded offsets inside the exe image are still gated on the byte-
++    // pattern check stored in g_talonInputLayoutStrictValid below, so they
++    // remain safe on non-original builds.
+     const uintptr_t base = reinterpret_cast<uintptr_t>(GetModuleHandleA(nullptr));
+     unsigned char create[] = {0x68, 0, 0, 0, 0, 0x68, 0x00, 0x07, 0x00, 0x00};
+     const uintptr_t diGlobal = base + 0xE3B18u;
+@@ -548,15 +620,27 @@
+     std::memcpy(link + 2, &listGlobal, 4);
+     std::memcpy(link + 14, &listGlobal, 4);
+     unsigned char actualCreate[sizeof(create)]{}, actualLink[sizeof(link)]{};
+-    return ReadInputMemory(base + 0x3EE80u, actualCreate, sizeof(actualCreate)) &&
+-           std::memcmp(create, actualCreate, sizeof(create)) == 0 &&
+-           ReadInputMemory(base + 0x3EF83u, actualLink, sizeof(actualLink)) &&
+-           std::memcmp(link, actualLink, sizeof(link)) == 0;
++    const bool strictMatch =
++        ReadInputMemory(base + 0x3EE80u, actualCreate, sizeof(actualCreate)) &&
++        std::memcmp(create, actualCreate, sizeof(create)) == 0 &&
++        ReadInputMemory(base + 0x3EF83u, actualLink, sizeof(actualLink)) &&
++        std::memcmp(link, actualLink, sizeof(link)) == 0;
++    LOG_SESSION("ValidateTalonInputLayout: strictRvaMatch=%d (ReadInput/RefreshDevices require strict match)",
++                strictMatch ? 1 : 0);
++    // Always return true so the IAT hooks are installed on all exe variants.
++    // InstallTalonReadInputHook and RefreshTalonInputDevices check
++    // g_talonInputLayoutStrictValid before touching hardcoded offsets.
++    return true;
+ }
+ 
++// FIX(4): separate flag for the parts that require exact RVA knowledge.
++static bool g_talonInputLayoutStrictValid = false;
++
+ static void InstallTalonReadInputHook()
+ {
+-    if (!g_talonInputLayoutValid || g_realTalonReadInput)
++    // FIX(4): use the strict flag — this function patches hardcoded offsets
++    // inside the exe image and must only run on the verified original build.
++    if (!g_talonInputLayoutStrictValid || g_realTalonReadInput)
+         return;
+     const uintptr_t base = reinterpret_cast<uintptr_t>(GetModuleHandleA(nullptr));
+     // The input-manager function table is initialized at 0x442124; ReadInput
+@@ -580,7 +664,8 @@
+ 
+ static void RefreshTalonInputDevices()
+ {
+-    if (!g_talonInputLayoutValid)
++    // FIX(4): strict flag guards the hardcoded offset reads.
++    if (!g_talonInputLayoutStrictValid)
+         return;
+     const uintptr_t base = reinterpret_cast<uintptr_t>(GetModuleHandleA(nullptr));
+     void *di = nullptr;
+@@ -642,11 +727,30 @@
+         g_realDirectInputCreateA = reinterpret_cast<PFN_DirectInputCreateA>(original);
+         LOG_SESSION("Renderer ImGui DirectInputCreateA hook installed");
+     }
++    // FIX(4): ValidateTalonInputLayout now always returns true (IAT hooks work
++    // on all exe variants). The strict flag gates the RVA-sensitive inner hooks.
+     g_talonInputLayoutValid = ValidateTalonInputLayout();
++    g_talonInputLayoutStrictValid = [&]() -> bool {
++        const uintptr_t base = reinterpret_cast<uintptr_t>(GetModuleHandleA(nullptr));
++        unsigned char create[] = {0x68, 0, 0, 0, 0, 0x68, 0x00, 0x07, 0x00, 0x00};
++        const uintptr_t diGlobal = base + 0xE3B18u;
++        std::memcpy(create + 1, &diGlobal, 4);
++        unsigned char link[] = {0x8B, 0x0D, 0, 0, 0, 0, 0x89, 0x8E, 0x00, 0x03, 0x00, 0x00,
++                               0x89, 0x35, 0, 0, 0, 0};
++        const uintptr_t listGlobal = base + 0xE3B1Cu;
++        std::memcpy(link + 2, &listGlobal, 4);
++        std::memcpy(link + 14, &listGlobal, 4);
++        unsigned char actualCreate[sizeof(create)]{}, actualLink[sizeof(link)]{};
++        return ReadInputMemory(base + 0x3EE80u, actualCreate, sizeof(actualCreate)) &&
++               std::memcmp(create, actualCreate, sizeof(create)) == 0 &&
++               ReadInputMemory(base + 0x3EF83u, actualLink, sizeof(actualLink)) &&
++               std::memcmp(link, actualLink, sizeof(link)) == 0;
++    }();
+     InstallTalonReadInputHook();
+     RefreshTalonInputDevices();
+-    LOG_SESSION("Renderer ImGui existing input capture: layout=%d deviceVtables=%zu",
+-                g_talonInputLayoutValid ? 1 : 0, g_diDeviceHooks.size());
++    LOG_SESSION("Renderer ImGui existing input capture: layout=%d strictLayout=%d deviceVtables=%zu",
++                g_talonInputLayoutValid ? 1 : 0, g_talonInputLayoutStrictValid ? 1 : 0,
++                g_diDeviceHooks.size());
+ }
+ 
+ static void RemoveInputCaptureHooks()
+@@ -661,7 +765,9 @@
+     g_diDeviceHooks.clear();
+     g_diInputCaptureStates.clear();
+     g_talonInputLayoutValid = false;
++    g_talonInputLayoutStrictValid = false; // FIX(4)
+     g_waitForUiMouseRelease = false;
++    g_waitForUiMouseReleaseDeadline = 0; // FIX(1)
+ 
+     HookManager::Uninstall("renderer.dinput.CreateDevice");
+     g_diCreateDeviceVtableSlot = nullptr;
+@@ -728,6 +834,30 @@
+     return lp;
+ }
+ 
++// FIX(5): keyboard messages that ImGui needs while the tuning panel is open.
++// The original subclass proc only forwarded mouse messages; keyboard input
++// relied entirely on the GetAsyncKeyState/GetKeyboardState IAT hooks which
++// are not installed when HandleImGuiWndProc is not the IAT path being used.
++// Route WM_KEY* and WM_CHAR* through HandleImGuiWndProc so the ImGui panel
++// can receive typed input regardless of IAT hook availability.
++static bool IsKeyboardMessage(UINT msg)
++{
++    switch (msg)
++    {
++    case WM_KEYDOWN:
++    case WM_KEYUP:
++    case WM_SYSKEYDOWN:
++    case WM_SYSKEYUP:
++    case WM_CHAR:
++    case WM_SYSCHAR:
++    case WM_DEADCHAR:
++    case WM_SYSDEADCHAR:
++        return true;
++    default:
++        return false;
++    }
++}
++
+ static LRESULT CALLBACK RendererHostSubclassProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp,
+                                                  UINT_PTR, DWORD_PTR)
+ {
+@@ -735,6 +865,11 @@
+     if (GUIQuality::Instance().HandleImGuiWndProc(hwnd, msg, wp, lp, &imguiResult))
+         return imguiResult;
+ 
++    // FIX(5): when the tuning menu is open, eat keyboard messages after
++    // forwarding them to ImGui above so they don't reach the game's WndProc.
++    if (GUIQuality::Instance().IsTuningMenuOpen() && IsKeyboardMessage(msg))
++        return 0;
++
+     if (IsClientMouseMessage(msg))
+         lp = RemapFullscreenMouseLParam(lp);
+ 

@@ -2,7 +2,7 @@
 """Place the original .rdata/.data/.bss at their ORIGINAL virtual addresses in the rebuilt exe.
 Outputs: ltdata.bin/ltdata.o (image), lt_syms.ld (name=VA for every Ghidra global), c/lt_fixups.c (code-pointer fixups)."""
 import re,glob,subprocess,pefile
-exe='/mnt/user-data/uploads/lithtech.exe'
+exe='./lithtechreal.exe'
 pe=pefile.PE(exe); base=pe.OPTIONAL_HEADER.ImageBase; raw=open(exe,'rb').read()
 lo=base+0xcb000; hi=base+0xef000
 img=bytearray(hi-lo)

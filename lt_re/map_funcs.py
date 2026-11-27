@@ -53,7 +53,7 @@ for f,vs in sorted(fmap.items()):
     ss=[]; files=collections.Counter()
     for v in vs:
         s=strs[v]; fs=lit.get(s) or lit.get(s.rstrip('\r\n'))
-        ss.append({'va':hex(v),'s':s[:100],'files':sorted(fs)[:4] if fs else []})
+        ss.append({'va':hex(v),'s':s[:100].replace('\\"', ''),'files':sorted(fs)[:4] if fs else []})
         for x in (fs or []): files[x]+=1
     if files: hits+=1
     res.append({'func':hex(f),'strings':ss,'best_files':files.most_common(3)})

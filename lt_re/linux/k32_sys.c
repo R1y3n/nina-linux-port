@@ -145,4 +145,5 @@ int WINAPI W_LCMapStringW(DWORD l,DWORD f,const WCHAR *s,int n,WCHAR *d,int dn){
 BOOL WINAPI W_IsProcessorFeaturePresent(DWORD f){ return 0; }
 UINT WINAPI W_SetErrorMode(UINT m){ return 0; }
 DWORD WINAPI W_WaitForSingleObjectEx(HANDLE h,DWORD ms,BOOL alertable){ return wait_many(1,&h,0,ms); }
+void WINAPI W_Sleep(DWORD ms);
 DWORD WINAPI W_SleepEx(DWORD ms,BOOL a){ W_Sleep(ms); return 0; }

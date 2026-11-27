@@ -85,7 +85,7 @@ static struct mod *load_pe(const char *low,const char *path){
       for(;*ot;ot++,at++){ if(*ot&0x80000000u) *at=(uint32_t)lt_resolve_import(dn,NULL,*ot&0xffff); else *at=(uint32_t)lt_resolve_import(dn,(char*)(base+*ot+2),0); } } }
   free(file);
   if(entry){ int ok=((int (WINAPI*)(void*,DWORD,void*))(base+entry))(base,1,NULL); if(!ok){ lt_log("DllMain failed for %s",low); nmods--; munmap(base,isz); return NULL; } }
-  return m; }
+  return m; }/*
 HMODULE WINAPI W_LoadLibraryA(LPCSTR name){
   if(getenv("LT_TRACE")){ extern unsigned lt_va_of(unsigned); Dl_info di; void *ra=__builtin_return_address(0); int ok=dladdr(ra,&di); lt_log("LoadLibrary(%s) caller_va=%x ra=%p in %s+%#lx sym=%s",name,lt_va_of((unsigned)ra),ra,ok&&di.dli_fname?di.dli_fname:"?",ok?(unsigned long)((char*)ra-(char*)di.dli_fbase):0,ok&&di.dli_sname?di.dli_sname:"?"); }
   if(getenv("LT_TRACE")&&name&&!*name){ const unsigned char *r=(const unsigned char*)name-4; lt_log("  RMode dump: hw=%u dll='%s' internal='%.40s' desc='%.40s' w=%u h=%u bpp=%u next=%x",*(unsigned*)r,name,r+260,r+388,*(unsigned*)(r+516),*(unsigned*)(r+520),*(unsigned*)(r+524),*(unsigned*)(r+528)); { volatile unsigned *sp=(unsigned*)__builtin_frame_address(0); int n=0; char b[400]=""; for(int i=0;i<600&&n<14;i++){ unsigned v=sp[i]; if(v>0x401000&&v<0x4cb000){ const unsigned char *c=(const unsigned char*)v; if(c[-5]==0xE8||c[-6]==0xFF||c[-2]==0xFF||c[-3]==0xFF){ char t[16]; snprintf(t,sizeof t," %x",v); strcat(b,t); n++; } } } lt_log("  stack chain:%s",b); } }
@@ -100,7 +100,104 @@ HMODULE WINAPI W_LoadLibraryA(LPCSTR name){
         if(getenv("LT_TRACE")) lt_log("LoadLibrary(%s): native ELF module %s",name,rp); pthread_mutex_unlock(&mmx); return m->base; } }
     m=load_pe(low,p); if(!m){ lt_log("LoadLibrary(%s) failed",name); set_last_error(126); pthread_mutex_unlock(&mmx); return NULL; } }
   else m->refs++;
-  pthread_mutex_unlock(&mmx); return m->base; }
+  pthread_mutex_unlock(&mmx); return m->base; }*/
+
+
+
+static void normalize_win_path(const char *in, char *out, size_t outsz) {
+    if (!in || !out || outsz == 0) return;
+
+    /* Translate Z:\tmp\filename or z:\tmp\filename -> /tmp/filename */
+    if ((in[0] == 'Z' || in[0] == 'z') && (in[1] == ':') && (in[2] == '\\' || in[2] == '/') && (in[3] == 't' || in[3] == 'T') && (in[4] == 'm' || in[4] == 'M') && (in[5] == 'p' || in[5] == 'P') && (in[6] == '\\' || in[6] == '/')) {
+        snprintf(out, outsz, "/tmp/%s", in + 7);
+    } 
+    /* Translate general Z:\path -> /path */
+    else if ((in[0] == 'Z' || in[0] == 'z') && in[1] == ':') {
+        snprintf(out, outsz, "%s", in + 2);
+    } 
+    else {
+        snprintf(out, outsz, "%s", in);
+    }
+
+    /* Convert backslashes to forward slashes */
+    for (char *p = out; *p; p++) {
+        if (*p == '\\') *p = '/';
+    }
+}
+
+HMODULE WINAPI W_LoadLibraryA(LPCSTR name) {
+    if (!name) return NULL;
+
+    char clean_path[1024];
+    normalize_win_path(name, clean_path, sizeof(clean_path));
+
+    char low[128];
+    lower_base(clean_path, low, sizeof low);
+
+    pthread_mutex_lock(&mmx);
+    struct mod *m = find_mod(low);
+
+    if (!m && is_shim(low)) {
+        m = &mods[nmods++];
+        memset(m, 0, sizeof *m);
+        snprintf(m->name, sizeof m->name, "%s", low);
+        m->shim = 1;
+        m->base = (uint8_t*)(0x7c000000u + nmods * 0x10000);
+    }
+
+    if (!m) {
+        char p[1024];
+        snprintf(p, sizeof p, "%s", clean_path);
+
+        if (access(p, R_OK)) {
+            char alt[1024];
+            snprintf(alt, sizeof alt, "%s", low);
+            if (!access(alt, R_OK)) strcpy(p, alt);
+        }
+
+        FILE *ef = fopen(p, "rb");
+        unsigned char mg[4] = {0};
+        if (ef) {
+            size_t rd = fread(mg, 1, 4, ef);
+            (void)rd;
+            fclose(ef);
+        }
+
+        if (!memcmp(mg, "\x7f""ELF", 4)) {
+            char rp[PATH_MAX];
+            if (!realpath(p, rp)) snprintf(rp, sizeof rp, "%s", p);
+            void *h = dlopen(rp, RTLD_NOW | RTLD_LOCAL);
+            if (!h) {
+                lt_log("LoadLibrary(%s): dlopen failed: %s", name, dlerror());
+                set_last_error(126);
+                pthread_mutex_unlock(&mmx);
+                return NULL;
+            }
+            m = &mods[nmods++];
+            memset(m, 0, sizeof *m);
+            m->elf = h;
+            snprintf(m->name, sizeof m->name, "%s", low);
+            snprintf(m->wpath, sizeof m->wpath, "%s", rp);
+            m->base = (uint8_t*)(0x7d000000u + nmods * 0x10000);
+            pthread_mutex_unlock(&mmx);
+            return m->base;
+        }
+
+        m = load_pe(low, p);
+        if (!m) {
+            lt_log("LoadLibrary(%s) failed", name);
+            set_last_error(126);
+            pthread_mutex_unlock(&mmx);
+            return NULL;
+        }
+    } else {
+        m->refs++;
+    }
+
+    pthread_mutex_unlock(&mmx);
+    return m->base;
+}
+
 HMODULE WINAPI W_GetModuleHandleA(LPCSTR name){ if(!name) return (HMODULE)MAIN_BASE; char low[128]; lower_base(name,low,sizeof low); pthread_mutex_lock(&mmx); struct mod *m=find_mod(low); if(!m&&is_shim(low)){ pthread_mutex_unlock(&mmx); return W_LoadLibraryA(name); } pthread_mutex_unlock(&mmx); if(!m){ set_last_error(126); return NULL; } return m->base; }
 BOOL WINAPI W_FreeLibrary(HMODULE h){ return 1; }
 static void *elf_sym(HMODULE h,const char *n){ for(int i=0;i<nmods;i++) if(mods[i].base==(uint8_t*)h&&mods[i].elf) return dlsym(mods[i].elf,n); return NULL; }

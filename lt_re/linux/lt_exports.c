@@ -1,20 +1,107 @@
 struct exp{const char*name;void*fn;};
+extern char W_AIL_3D_orientation[];
+extern char W_AIL_3D_position[];
+extern char W_AIL_3D_provider_attribute[];
+extern char W_AIL_3D_room_type[];
+extern char W_AIL_3D_sample_obstruction[];
+extern char W_AIL_3D_sample_status[];
+extern char W_AIL_3D_sample_volume[];
+extern char W_AIL_3D_user_data[];
+extern char W_AIL_3D_velocity[];
+extern char W_AIL_allocate_3D_sample_handle[];
+extern char W_AIL_allocate_sample_handle[];
+extern char W_AIL_close_3D_listener[];
+extern char W_AIL_close_3D_provider[];
+extern char W_AIL_close_stream[];
+extern char W_AIL_decompress_ADPCM[];
+extern char W_AIL_decompress_ASI[];
+extern char W_AIL_digital_handle_reacquire[];
+extern char W_AIL_digital_handle_release[];
+extern char W_AIL_digital_master_volume[];
+extern char W_AIL_end_3D_sample[];
+extern char W_AIL_enumerate_3D_providers[];
+extern char W_AIL_enumerate_filter_sample_attributes[];
+extern char W_AIL_enumerate_filters[];
+extern char W_AIL_filter_sample_attribute[];
 extern char W_AIL_get_preference[];
+extern char W_AIL_init_sample[];
 extern char W_AIL_last_error[];
 extern char W_AIL_lock[];
 extern char W_AIL_mem_alloc_lock[];
 extern char W_AIL_mem_free_lock[];
 extern char W_AIL_ms_count[];
+extern char W_AIL_open_3D_listener[];
+extern char W_AIL_open_3D_provider[];
+extern char W_AIL_open_stream[];
+extern char W_AIL_pause_stream[];
+extern char W_AIL_release_3D_sample_handle[];
+extern char W_AIL_release_sample_handle[];
+extern char W_AIL_resume_3D_sample[];
+extern char W_AIL_resume_sample[];
+extern char W_AIL_sample_ms_position[];
+extern char W_AIL_sample_pan[];
+extern char W_AIL_sample_status[];
+extern char W_AIL_sample_user_data[];
+extern char W_AIL_sample_volume[];
+extern char W_AIL_service_stream[];
+extern char W_AIL_set_3D_orientation[];
+extern char W_AIL_set_3D_position[];
+extern char W_AIL_set_3D_room_type[];
+extern char W_AIL_set_3D_sample_distances[];
+extern char W_AIL_set_3D_sample_effects_level[];
+extern char W_AIL_set_3D_sample_info[];
+extern char W_AIL_set_3D_sample_loop_block[];
+extern char W_AIL_set_3D_sample_loop_count[];
+extern char W_AIL_set_3D_sample_obstruction[];
+extern char W_AIL_set_3D_sample_occlusion[];
+extern char W_AIL_set_3D_sample_offset[];
+extern char W_AIL_set_3D_sample_playback_rate[];
+extern char W_AIL_set_3D_sample_preference[];
+extern char W_AIL_set_3D_sample_volume[];
+extern char W_AIL_set_3D_user_data[];
+extern char W_AIL_set_3D_velocity_vector[];
+extern char W_AIL_set_digital_master_volume[];
+extern char W_AIL_set_filter_sample_preference[];
+extern char W_AIL_set_named_sample_file[];
 extern char W_AIL_set_preference[];
+extern char W_AIL_set_sample_address[];
+extern char W_AIL_set_sample_file[];
+extern char W_AIL_set_sample_loop_block[];
+extern char W_AIL_set_sample_loop_count[];
+extern char W_AIL_set_sample_ms_position[];
+extern char W_AIL_set_sample_pan[];
+extern char W_AIL_set_sample_playback_rate[];
+extern char W_AIL_set_sample_processor[];
+extern char W_AIL_set_sample_reverb[];
+extern char W_AIL_set_sample_type[];
+extern char W_AIL_set_sample_user_data[];
+extern char W_AIL_set_sample_volume[];
+extern char W_AIL_set_stream_loop_count[];
+extern char W_AIL_set_stream_ms_position[];
+extern char W_AIL_set_stream_pan[];
+extern char W_AIL_set_stream_playback_rate[];
+extern char W_AIL_set_stream_user_data[];
+extern char W_AIL_set_stream_volume[];
 extern char W_AIL_shutdown[];
+extern char W_AIL_start_3D_sample[];
+extern char W_AIL_start_sample[];
+extern char W_AIL_start_stream[];
 extern char W_AIL_startup[];
+extern char W_AIL_stop_3D_sample[];
+extern char W_AIL_stop_sample[];
+extern char W_AIL_stream_ms_position[];
+extern char W_AIL_stream_pan[];
+extern char W_AIL_stream_status[];
+extern char W_AIL_stream_volume[];
 extern char W_AIL_unlock[];
+extern char W_AIL_waveOutClose[];
 extern char W_AIL_waveOutOpen[];
 extern char W_AcquireSRWLockExclusive[];
 extern char W_AddFontResourceA[];
 extern char W_AdjustWindowRect[];
 extern char W_AdjustWindowRectEx[];
 extern char W_BeginPaint[];
+extern char W_CallWindowProcA[];
 extern char W_ChangeDisplaySettingsExA[];
 extern char W_ChoosePixelFormat[];
 extern char W_ClientToScreen[];
@@ -57,8 +144,10 @@ extern char W_DirectDrawCreate[];
 extern char W_DirectDrawCreateEx[];
 extern char W_DirectDrawEnumerateA[];
 extern char W_DirectDrawEnumerateExA[];
+extern char W_DirectInput8Create[];
 extern char W_DirectInputCreateA[];
 extern char W_DirectInputCreateEx[];
+extern char W_DirectInputCreateW[];
 extern char W_DirectSoundCreate[];
 extern char W_DisableThreadLibraryCalls[];
 extern char W_DispatchMessageA[];
@@ -131,6 +220,7 @@ extern char W_GetFullPathNameW[];
 extern char W_GetKeyState[];
 extern char W_GetKeyboardLayout[];
 extern char W_GetKeyboardState[];
+extern char W_GetLastActivePopup[];
 extern char W_GetLastError[];
 extern char W_GetLocalTime[];
 extern char W_GetLocaleInfoA[];
@@ -184,6 +274,7 @@ extern char W_HeapDestroy[];
 extern char W_HeapFree[];
 extern char W_HeapReAlloc[];
 extern char W_HeapSize[];
+extern char W_HeapValidate[];
 extern char W_InitializeConditionVariable[];
 extern char W_InitializeCriticalSection[];
 extern char W_InterlockedDecrement[];
@@ -211,6 +302,8 @@ extern char W_LoadResource[];
 extern char W_LoadStringA[];
 extern char W_LocalFree[];
 extern char W_LockResource[];
+extern char W_MapVirtualKeyA[];
+extern char W_MapVirtualKeyW[];
 extern char W_MapWindowPoints[];
 extern char W_MessageBoxA[];
 extern char W_MonitorFromWindow[];
@@ -244,6 +337,7 @@ extern char W_ResumeThread[];
 extern char W_RtlUnwind[];
 extern char W_ScreenToClient[];
 extern char W_SelectObject[];
+extern char W_SendMessageA[];
 extern char W_SetBkColor[];
 extern char W_SetBkMode[];
 extern char W_SetCapture[];
@@ -435,22 +529,109 @@ extern char W_wglMakeCurrent[];
 extern char W_wsprintfA[];
 extern char W_wvsprintfA[];
 struct exp lt_exports[]={
+ {"AIL_3D_orientation",(void*)W_AIL_3D_orientation},
+ {"AIL_3D_position",(void*)W_AIL_3D_position},
+ {"AIL_3D_provider_attribute",(void*)W_AIL_3D_provider_attribute},
+ {"AIL_3D_room_type",(void*)W_AIL_3D_room_type},
+ {"AIL_3D_sample_obstruction",(void*)W_AIL_3D_sample_obstruction},
+ {"AIL_3D_sample_status",(void*)W_AIL_3D_sample_status},
+ {"AIL_3D_sample_volume",(void*)W_AIL_3D_sample_volume},
+ {"AIL_3D_user_data",(void*)W_AIL_3D_user_data},
+ {"AIL_3D_velocity",(void*)W_AIL_3D_velocity},
+ {"AIL_allocate_3D_sample_handle",(void*)W_AIL_allocate_3D_sample_handle},
+ {"AIL_allocate_sample_handle",(void*)W_AIL_allocate_sample_handle},
+ {"AIL_close_3D_listener",(void*)W_AIL_close_3D_listener},
+ {"AIL_close_3D_provider",(void*)W_AIL_close_3D_provider},
+ {"AIL_close_stream",(void*)W_AIL_close_stream},
+ {"AIL_decompress_ADPCM",(void*)W_AIL_decompress_ADPCM},
+ {"AIL_decompress_ASI",(void*)W_AIL_decompress_ASI},
+ {"AIL_digital_handle_reacquire",(void*)W_AIL_digital_handle_reacquire},
+ {"AIL_digital_handle_release",(void*)W_AIL_digital_handle_release},
+ {"AIL_digital_master_volume",(void*)W_AIL_digital_master_volume},
+ {"AIL_end_3D_sample",(void*)W_AIL_end_3D_sample},
+ {"AIL_enumerate_3D_providers",(void*)W_AIL_enumerate_3D_providers},
+ {"AIL_enumerate_filter_sample_attributes",(void*)W_AIL_enumerate_filter_sample_attributes},
+ {"AIL_enumerate_filters",(void*)W_AIL_enumerate_filters},
+ {"AIL_filter_sample_attribute",(void*)W_AIL_filter_sample_attribute},
  {"AIL_get_preference",(void*)W_AIL_get_preference},
+ {"AIL_init_sample",(void*)W_AIL_init_sample},
  {"AIL_last_error",(void*)W_AIL_last_error},
  {"AIL_lock",(void*)W_AIL_lock},
  {"AIL_mem_alloc_lock",(void*)W_AIL_mem_alloc_lock},
  {"AIL_mem_free_lock",(void*)W_AIL_mem_free_lock},
  {"AIL_ms_count",(void*)W_AIL_ms_count},
+ {"AIL_open_3D_listener",(void*)W_AIL_open_3D_listener},
+ {"AIL_open_3D_provider",(void*)W_AIL_open_3D_provider},
+ {"AIL_open_stream",(void*)W_AIL_open_stream},
+ {"AIL_pause_stream",(void*)W_AIL_pause_stream},
+ {"AIL_release_3D_sample_handle",(void*)W_AIL_release_3D_sample_handle},
+ {"AIL_release_sample_handle",(void*)W_AIL_release_sample_handle},
+ {"AIL_resume_3D_sample",(void*)W_AIL_resume_3D_sample},
+ {"AIL_resume_sample",(void*)W_AIL_resume_sample},
+ {"AIL_sample_ms_position",(void*)W_AIL_sample_ms_position},
+ {"AIL_sample_pan",(void*)W_AIL_sample_pan},
+ {"AIL_sample_status",(void*)W_AIL_sample_status},
+ {"AIL_sample_user_data",(void*)W_AIL_sample_user_data},
+ {"AIL_sample_volume",(void*)W_AIL_sample_volume},
+ {"AIL_service_stream",(void*)W_AIL_service_stream},
+ {"AIL_set_3D_orientation",(void*)W_AIL_set_3D_orientation},
+ {"AIL_set_3D_position",(void*)W_AIL_set_3D_position},
+ {"AIL_set_3D_room_type",(void*)W_AIL_set_3D_room_type},
+ {"AIL_set_3D_sample_distances",(void*)W_AIL_set_3D_sample_distances},
+ {"AIL_set_3D_sample_effects_level",(void*)W_AIL_set_3D_sample_effects_level},
+ {"AIL_set_3D_sample_info",(void*)W_AIL_set_3D_sample_info},
+ {"AIL_set_3D_sample_loop_block",(void*)W_AIL_set_3D_sample_loop_block},
+ {"AIL_set_3D_sample_loop_count",(void*)W_AIL_set_3D_sample_loop_count},
+ {"AIL_set_3D_sample_obstruction",(void*)W_AIL_set_3D_sample_obstruction},
+ {"AIL_set_3D_sample_occlusion",(void*)W_AIL_set_3D_sample_occlusion},
+ {"AIL_set_3D_sample_offset",(void*)W_AIL_set_3D_sample_offset},
+ {"AIL_set_3D_sample_playback_rate",(void*)W_AIL_set_3D_sample_playback_rate},
+ {"AIL_set_3D_sample_preference",(void*)W_AIL_set_3D_sample_preference},
+ {"AIL_set_3D_sample_volume",(void*)W_AIL_set_3D_sample_volume},
+ {"AIL_set_3D_user_data",(void*)W_AIL_set_3D_user_data},
+ {"AIL_set_3D_velocity_vector",(void*)W_AIL_set_3D_velocity_vector},
+ {"AIL_set_digital_master_volume",(void*)W_AIL_set_digital_master_volume},
+ {"AIL_set_filter_sample_preference",(void*)W_AIL_set_filter_sample_preference},
+ {"AIL_set_named_sample_file",(void*)W_AIL_set_named_sample_file},
  {"AIL_set_preference",(void*)W_AIL_set_preference},
+ {"AIL_set_sample_address",(void*)W_AIL_set_sample_address},
+ {"AIL_set_sample_file",(void*)W_AIL_set_sample_file},
+ {"AIL_set_sample_loop_block",(void*)W_AIL_set_sample_loop_block},
+ {"AIL_set_sample_loop_count",(void*)W_AIL_set_sample_loop_count},
+ {"AIL_set_sample_ms_position",(void*)W_AIL_set_sample_ms_position},
+ {"AIL_set_sample_pan",(void*)W_AIL_set_sample_pan},
+ {"AIL_set_sample_playback_rate",(void*)W_AIL_set_sample_playback_rate},
+ {"AIL_set_sample_processor",(void*)W_AIL_set_sample_processor},
+ {"AIL_set_sample_reverb",(void*)W_AIL_set_sample_reverb},
+ {"AIL_set_sample_type",(void*)W_AIL_set_sample_type},
+ {"AIL_set_sample_user_data",(void*)W_AIL_set_sample_user_data},
+ {"AIL_set_sample_volume",(void*)W_AIL_set_sample_volume},
+ {"AIL_set_stream_loop_count",(void*)W_AIL_set_stream_loop_count},
+ {"AIL_set_stream_ms_position",(void*)W_AIL_set_stream_ms_position},
+ {"AIL_set_stream_pan",(void*)W_AIL_set_stream_pan},
+ {"AIL_set_stream_playback_rate",(void*)W_AIL_set_stream_playback_rate},
+ {"AIL_set_stream_user_data",(void*)W_AIL_set_stream_user_data},
+ {"AIL_set_stream_volume",(void*)W_AIL_set_stream_volume},
  {"AIL_shutdown",(void*)W_AIL_shutdown},
+ {"AIL_start_3D_sample",(void*)W_AIL_start_3D_sample},
+ {"AIL_start_sample",(void*)W_AIL_start_sample},
+ {"AIL_start_stream",(void*)W_AIL_start_stream},
  {"AIL_startup",(void*)W_AIL_startup},
+ {"AIL_stop_3D_sample",(void*)W_AIL_stop_3D_sample},
+ {"AIL_stop_sample",(void*)W_AIL_stop_sample},
+ {"AIL_stream_ms_position",(void*)W_AIL_stream_ms_position},
+ {"AIL_stream_pan",(void*)W_AIL_stream_pan},
+ {"AIL_stream_status",(void*)W_AIL_stream_status},
+ {"AIL_stream_volume",(void*)W_AIL_stream_volume},
  {"AIL_unlock",(void*)W_AIL_unlock},
+ {"AIL_waveOutClose",(void*)W_AIL_waveOutClose},
  {"AIL_waveOutOpen",(void*)W_AIL_waveOutOpen},
  {"AcquireSRWLockExclusive",(void*)W_AcquireSRWLockExclusive},
  {"AddFontResourceA",(void*)W_AddFontResourceA},
  {"AdjustWindowRect",(void*)W_AdjustWindowRect},
  {"AdjustWindowRectEx",(void*)W_AdjustWindowRectEx},
  {"BeginPaint",(void*)W_BeginPaint},
+ {"CallWindowProcA",(void*)W_CallWindowProcA},
  {"ChangeDisplaySettingsExA",(void*)W_ChangeDisplaySettingsExA},
  {"ChoosePixelFormat",(void*)W_ChoosePixelFormat},
  {"ClientToScreen",(void*)W_ClientToScreen},
@@ -493,8 +674,10 @@ struct exp lt_exports[]={
  {"DirectDrawCreateEx",(void*)W_DirectDrawCreateEx},
  {"DirectDrawEnumerateA",(void*)W_DirectDrawEnumerateA},
  {"DirectDrawEnumerateExA",(void*)W_DirectDrawEnumerateExA},
+ {"DirectInput8Create",(void*)W_DirectInput8Create},
  {"DirectInputCreateA",(void*)W_DirectInputCreateA},
  {"DirectInputCreateEx",(void*)W_DirectInputCreateEx},
+ {"DirectInputCreateW",(void*)W_DirectInputCreateW},
  {"DirectSoundCreate",(void*)W_DirectSoundCreate},
  {"DisableThreadLibraryCalls",(void*)W_DisableThreadLibraryCalls},
  {"DispatchMessageA",(void*)W_DispatchMessageA},
@@ -567,6 +750,7 @@ struct exp lt_exports[]={
  {"GetKeyState",(void*)W_GetKeyState},
  {"GetKeyboardLayout",(void*)W_GetKeyboardLayout},
  {"GetKeyboardState",(void*)W_GetKeyboardState},
+ {"GetLastActivePopup",(void*)W_GetLastActivePopup},
  {"GetLastError",(void*)W_GetLastError},
  {"GetLocalTime",(void*)W_GetLocalTime},
  {"GetLocaleInfoA",(void*)W_GetLocaleInfoA},
@@ -620,6 +804,7 @@ struct exp lt_exports[]={
  {"HeapFree",(void*)W_HeapFree},
  {"HeapReAlloc",(void*)W_HeapReAlloc},
  {"HeapSize",(void*)W_HeapSize},
+ {"HeapValidate",(void*)W_HeapValidate},
  {"InitializeConditionVariable",(void*)W_InitializeConditionVariable},
  {"InitializeCriticalSection",(void*)W_InitializeCriticalSection},
  {"InterlockedDecrement",(void*)W_InterlockedDecrement},
@@ -647,6 +832,8 @@ struct exp lt_exports[]={
  {"LoadStringA",(void*)W_LoadStringA},
  {"LocalFree",(void*)W_LocalFree},
  {"LockResource",(void*)W_LockResource},
+ {"MapVirtualKeyA",(void*)W_MapVirtualKeyA},
+ {"MapVirtualKeyW",(void*)W_MapVirtualKeyW},
  {"MapWindowPoints",(void*)W_MapWindowPoints},
  {"MessageBoxA",(void*)W_MessageBoxA},
  {"MonitorFromWindow",(void*)W_MonitorFromWindow},
@@ -680,6 +867,7 @@ struct exp lt_exports[]={
  {"RtlUnwind",(void*)W_RtlUnwind},
  {"ScreenToClient",(void*)W_ScreenToClient},
  {"SelectObject",(void*)W_SelectObject},
+ {"SendMessageA",(void*)W_SendMessageA},
  {"SetBkColor",(void*)W_SetBkColor},
  {"SetBkMode",(void*)W_SetBkMode},
  {"SetCapture",(void*)W_SetCapture},
@@ -871,4 +1059,4 @@ struct exp lt_exports[]={
  {"wsprintfA",(void*)W_wsprintfA},
  {"wvsprintfA",(void*)W_wvsprintfA},
 };
-int lt_exports_n=435;
+int lt_exports_n=529;

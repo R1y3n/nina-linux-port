@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Generate the data the native-Linux build needs. Run from lt_re/linux/ after lift_all.py + gen_image.py."""
 import re,glob,subprocess,pefile,os
-exe=os.environ.get('LT_EXE','/mnt/user-data/uploads/lithtechreal.exe')
+exe=os.environ.get('LT_EXE','../lithtechreal.exe')
 pe=pefile.PE(exe); raw=open(exe,'rb').read()
 # 1. export table of implemented shim functions
 names=[]

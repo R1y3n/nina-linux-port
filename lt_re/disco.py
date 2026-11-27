@@ -3,7 +3,7 @@
 Recursive descent from: entry point, code pointers stored in .rdata/.data, immediates that point into .text,
 call/jmp targets, jump tables (jmp [r*4+table]) and, last, function prologues in still-uncovered gaps.
 Writes data/code_units.txt  ("<hex va> <len>" per instruction, same format as the Ghidra export)."""
-import sys, struct, collections, json
+import os, sys, struct, collections, json
 import pefile
 from capstone import Cs, CS_ARCH_X86, CS_MODE_32
 from capstone.x86 import X86_OP_IMM, X86_OP_MEM, X86_OP_REG
@@ -50,6 +50,18 @@ def add_seed(v, why):
         work.append(v); seeds.add(v)
 
 add_seed(base + pe.OPTIONAL_HEADER.AddressOfEntryPoint, 'entry')
+_extra = os.environ.get('LT_EXTRA_SEEDS')
+if _extra:
+    for _t in _extra.split(','):
+        _t = _t.strip()
+        if _t:
+            add_seed(int(_t, 16), 'extra')
+# exported functions are only referenced by RVA in the export directory, so
+# seed them explicitly (otherwise their bodies/immediates are found too late)
+if hasattr(pe, 'DIRECTORY_ENTRY_EXPORT'):
+    for _e in pe.DIRECTORY_ENTRY_EXPORT.symbols:
+        if not _e.forwarder:
+            add_seed(base + _e.address, 'export')
 
 # 1. code pointers in data sections (vtables, callbacks, SEH scope tables, jump tables in .rdata)
 for s in pe.sections:
@@ -222,6 +234,20 @@ for rounds in range(400):
         k = e
     added += new
     if not new: break
+
+# 2b. late code pointers: functions found by the gap scan reference more
+#     functions through immediates; drain those edges until closure.
+for _ in range(400):
+    cand = [v for v in dict.fromkeys(deferred) if v not in done and in_text(v) and v not in insn]
+    if not cand: break
+    tier = [v for v in cand if plaus(v)] or cand
+    del deferred[:]
+    deferred.extend(v for v in cand if v not in tier)
+    before = len(insn)
+    for v in tier:
+        done.add(v)
+        if v not in insn: spec(v)
+    if len(insn) == before and not deferred: break
 
 # 3. report
 m = covered_mask()

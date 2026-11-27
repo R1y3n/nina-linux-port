@@ -1,0 +1,8 @@
+#pragma once
+#include <ext/hash_map>
+namespace std { using __gnu_cxx::hash_map; using __gnu_cxx::hash_multimap; using __gnu_cxx::hash; }
+#ifndef LT_HASH_STRING_DEFINED
+#define LT_HASH_STRING_DEFINED
+#include <string>
+namespace __gnu_cxx { template<> struct hash<std::string> { size_t operator()(const std::string& s) const { return hash<const char*>()(s.c_str()); } }; }
+#endif

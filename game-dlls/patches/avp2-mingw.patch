@@ -1,0 +1,1428 @@
+diff --git a/proj/LT2/lithshared/stdlith/stdlithdefs.h b/proj/LT2/lithshared/stdlith/stdlithdefs.h
+--- a/proj/LT2/lithshared/stdlith/stdlithdefs.h
++++ b/proj/LT2/lithshared/stdlith/stdlithdefs.h
+@@ -19,14 +19,17 @@
+ 	#include <stdio.h>
+ 	#include <string.h>
+ 	#include <assert.h>
++	#ifdef WIN32
++	#include <windows.h>
++	#endif
+ 
+ 
+ 
+-	#ifndef BOOL
++	#if !defined(BOOL) && !defined(WIN32)
+ 		#define BOOL	int
+ 	#endif
+ 
+-	#ifndef DWORD
++	#if !defined(DWORD) && !defined(WIN32)
+ 		#define DWORD	unsigned long
+ 	#endif
+ 
+@@ -34,7 +37,7 @@
+ 		#define SDWORD	long
+ 	#endif
+ 
+-	#ifndef WORD
++	#if !defined(WORD) && !defined(WIN32)
+ 		#define WORD	unsigned short
+ 	#endif
+ 
+@@ -42,7 +45,7 @@
+ 		#define SWORD	short
+ 	#endif
+ 
+-	#ifndef BYTE
++	#if !defined(BYTE) && !defined(WIN32)
+ 		#define BYTE	unsigned char
+ 	#endif
+ 
+diff --git a/proj/LT2/sdk/inc/ltbasedefs.h b/proj/LT2/sdk/inc/ltbasedefs.h
+--- a/proj/LT2/sdk/inc/ltbasedefs.h
++++ b/proj/LT2/sdk/inc/ltbasedefs.h
+@@ -975,8 +975,8 @@
+ 	public:
+ 			ObjArray()
+ 			{
+-				m_pArray = m_Array;
+-				m_MaxListSize = size;
++				this->m_pArray = m_Array;
++				this->m_MaxListSize = size;
+ 			}
+ 
+ 	private:
+diff --git a/proj/AVP2/ObjectDLL/AI.cpp b/proj/AVP2/ObjectDLL/AI.cpp
+--- a/proj/AVP2/ObjectDLL/AI.cpp
++++ b/proj/AVP2/ObjectDLL/AI.cpp
+@@ -139,23 +139,23 @@
+ 
+ 
+ #define ADD_GOAL(number, group) \
+-		ADD_STRINGPROP_FLAG_HELP(GoalType_##number##, const_cast<char*>(g_szNone), (group) | PF_DYNAMICLIST, "Type of goal.") \
+-		ADD_OBJECTPROP_FLAG_HELP(Link_##number##, "", group, "Link to an object used by the goal (can be null).") \
+-		ADD_STRINGPROP_FLAG_HELP(Parameters_##number##, "", group, "Other parameters for goal (ie. TARGET=Player).")
++		ADD_STRINGPROP_FLAG_HELP(GoalType_##number, const_cast<char*>(g_szNone), (group) | PF_DYNAMICLIST, "Type of goal.") \
++		ADD_OBJECTPROP_FLAG_HELP(Link_##number, "", group, "Link to an object used by the goal (can be null).") \
++		ADD_STRINGPROP_FLAG_HELP(Parameters_##number, "", group, "Other parameters for goal (ie. TARGET=Player).")
+ 
+ /*
+-		ADD_STRINGPROP_FLAG_HELP(GoalName_##number##, "Goal_"#number, group, "Unique name for goal.") \
+-		ADD_REALPROP_FLAG_HELP(BidValue_##number##, 0.0f, group, "Bid (priority) of goal.") \
++		ADD_STRINGPROP_FLAG_HELP(GoalName_##number, "Goal_"#number, group, "Unique name for goal.") \
++		ADD_REALPROP_FLAG_HELP(BidValue_##number, 0.0f, group, "Bid (priority) of goal.") \
+ */
+ 
+ #define ADD_GOAL_DEFAULTS(number, group, type, priority) \
+-		ADD_STRINGPROP_FLAG_HELP(GoalType_##number##, type, (group) | PF_DYNAMICLIST, "Type of goal.") \
+-		ADD_OBJECTPROP_FLAG_HELP(Link_##number##, "", group, "Link to an object used by the goal (can be null).") \
+-		ADD_STRINGPROP_FLAG_HELP(Parameters_##number##, "", group, "Other parameters for goal (ie. TARGET=Player).")
++		ADD_STRINGPROP_FLAG_HELP(GoalType_##number, type, (group) | PF_DYNAMICLIST, "Type of goal.") \
++		ADD_OBJECTPROP_FLAG_HELP(Link_##number, "", group, "Link to an object used by the goal (can be null).") \
++		ADD_STRINGPROP_FLAG_HELP(Parameters_##number, "", group, "Other parameters for goal (ie. TARGET=Player).")
+ 
+ /*	   
+-		ADD_STRINGPROP_FLAG_HELP(GoalName_##number##, "Goal_"#number, group, "Unique name for goal.") \
+-		ADD_REALPROP_FLAG_HELP(BidValue_##number##, priority, group, "Bid (priority) of goal.") \
++		ADD_STRINGPROP_FLAG_HELP(GoalName_##number, "Goal_"#number, group, "Unique name for goal.") \
++		ADD_REALPROP_FLAG_HELP(BidValue_##number, priority, group, "Bid (priority) of goal.") \
+ */
+ 
+ // Define our properties (what is available in DEdit)...
+@@ -2026,7 +2026,7 @@
+ 				LTVector vUp = GetUp();
+ 				g_pMathLT->AlignRotation(rRot, vDest, vUp);
+ #else
+-				g_pMathLT->AlignRotation( rRot, const_cast<LTVector&>(vDest - GetPosition()), const_cast<LTVector&>(GetUp()) );
++				g_pMathLT->AlignRotation( rRot, AsLvalue<LTVector>(vDest - GetPosition()), AsLvalue<LTVector>(GetUp()) );
+ #endif
+ 				m_cmMovement.SetRot(rRot);
+ 			}
+@@ -5050,7 +5050,7 @@
+ 
+ 	if( facing_direction.MagSqr() > 0.001f )
+ 	{
+-		g_pMathLT->AlignRotation(rRot, facing_direction, const_cast<LTVector&>(my_up) );
++		g_pMathLT->AlignRotation(rRot, facing_direction, AsLvalue<LTVector>(my_up) );
+ 		m_cmMovement.SetRot(rRot);
+ 	}
+ 
+@@ -6522,7 +6522,7 @@
+ 		pMsg->WriteByte(SFX_CHARACTER_ID);
+ 		pMsg->WriteObject(m_hObject);
+ 		pMsg->WriteByte(CFX_NODECONTROL_HEAD_FOLLOW_POS);
+-		pMsg->WriteVector(const_cast<LTVector&>(vPos));
++		pMsg->WriteVector(AsLvalue<LTVector>(vPos));
+ 		pMsg->WriteHString(LTString("Head_node"));
+ 		pMsg->WriteByte( TRUE );
+ 
+@@ -6687,7 +6687,7 @@
+ 				vAlignDir = vNormal.Cross( GetUp() );
+ 			}
+ 
+-			g_pLTServer->GetMathLT()->AlignRotation(rRot, vAlignDir, const_cast<LTVector&>(vNormal) );
++			g_pLTServer->GetMathLT()->AlignRotation(rRot, vAlignDir, AsLvalue<LTVector>(vNormal) );
+ 			m_cmMovement.SetRot(rRot);
+ 
+ 			bMoveObjectToFloor = LTFALSE;
+@@ -6898,7 +6898,7 @@
+ 		LTRotation rEye = GetEyeRotation();
+ 		g_pMathLT->InterpolateRotation(rRot, rAim, rEye, (fTimeDiff - fMaxFollowAimTime)/fInterpolationTime);
+ #else
+-		g_pMathLT->InterpolateRotation(rRot,const_cast<LTRotation&>(GetAimRotation()),const_cast<LTRotation&>(GetEyeRotation()), (fTimeDiff - fMaxFollowAimTime)/fInterpolationTime );
++		g_pMathLT->InterpolateRotation(rRot,AsLvalue<LTRotation>(GetAimRotation()),AsLvalue<LTRotation>(GetEyeRotation()), (fTimeDiff - fMaxFollowAimTime)/fInterpolationTime );
+ #endif
+ 		return rRot;
+ 	}
+@@ -6944,7 +6944,7 @@
+ //	{
+ //		// Do a linear interpolation in LithTech's backwards way.
+ //		LTRotation rRot;
+-//		g_pMathLT->InterpolateRotation(rRot,const_cast<LTRotation&>(GetAimRotation()),const_cast<LTRotation&>(GetEyeRotation()), (fTimeDiff - fMaxFollowAimTime)/fInterpolationTime );
++//		g_pMathLT->InterpolateRotation(rRot,AsLvalue<LTRotation>(GetAimRotation()),AsLvalue<LTRotation>(GetEyeRotation()), (fTimeDiff - fMaxFollowAimTime)/fInterpolationTime );
+ //	}
+ 
+ 	HMESSAGEWRITE hMessage = g_pLTServer->StartMessage(LTNULL, MID_SFX_MESSAGE);
+@@ -7746,7 +7746,7 @@
+ 	vNewForward -= vNormal*vNormal.Dot(vNewForward);
+ 
+ 	LTRotation rDest;
+-	g_pLTServer->GetMathLT()->AlignRotation(rDest, vNewForward, const_cast<LTVector&>(vNormal) );
++	g_pLTServer->GetMathLT()->AlignRotation(rDest, vNewForward, AsLvalue<LTVector>(vNormal) );
+ 
+ 	m_cmMovement.SetStart( m_cmMovement.GetPos(),  m_cmMovement.GetRot() );
+ 	m_cmMovement.SetDestination( vDest, rDest );
+diff --git a/proj/AVP2/ObjectDLL/LightGroup.cpp b/proj/AVP2/ObjectDLL/LightGroup.cpp
+--- a/proj/AVP2/ObjectDLL/LightGroup.cpp
++++ b/proj/AVP2/ObjectDLL/LightGroup.cpp
+@@ -1072,7 +1072,7 @@
+ 	HSTRING hMsg = g_pServerDE->ReadFromMessageHString(hRead);
+ 	std::string message = g_pServerDE->GetStringData( hMsg );
+ 
+-	std::transform(message.begin(), message.end(), message.begin(), toupper);
++	std::transform(message.begin(), message.end(), message.begin(), ::toupper);
+ 
+ 	TriggerChildren(hMsg);
+ 
+diff --git a/proj/AVP2/ObjectDLL/AIVolume.cpp b/proj/AVP2/ObjectDLL/AIVolume.cpp
+--- a/proj/AVP2/ObjectDLL/AIVolume.cpp
++++ b/proj/AVP2/ObjectDLL/AIVolume.cpp
+@@ -48,8 +48,8 @@
+ 	out << &box.GetCenter();
+ 	out << &box.GetDims();
+ #else
+-	out << box.GetCenter();
+-	out << box.GetDims();
++	out << AsLvalue<LTVector>(box.GetCenter());
++	out << AsLvalue<LTVector>(box.GetDims());
+ #endif
+ 	return out;
+ }
+diff --git a/proj/AVP2/ObjectDLL/Sprinkles.cpp b/proj/AVP2/ObjectDLL/Sprinkles.cpp
+--- a/proj/AVP2/ObjectDLL/Sprinkles.cpp
++++ b/proj/AVP2/ObjectDLL/Sprinkles.cpp
+@@ -5,15 +5,15 @@
+ 
+ 
+ #define ADD_SPRINKLE_PROP(num, defFilename) \
+-	ADD_STRINGPROP_FLAG(Filename##num##, defFilename, PF_FILENAME)\
+-	ADD_STRINGPROP_FLAG(SkinName##num##, "", PF_FILENAME)\
+-	ADD_LONGINTPROP(Count##num##, 16)\
+-	ADD_REALPROP(Speed##num##, 50.0f)\
+-	ADD_REALPROP(Size##num##, 10.0f)\
+-	ADD_REALPROP_FLAG(SpawnRadius##num##, 500.0f, PF_RADIUS)\
+-	ADD_COLORPROP(ColorMin##num##, 255.0f, 255.0f, 255.0f)\
+-	ADD_COLORPROP(ColorMax##num##, 255.0f, 255.0f, 255.0f)\
+-	ADD_VECTORPROP_VAL(AnglesVel##num##, 1.0f, 1.0f, 1.0f)
++	ADD_STRINGPROP_FLAG(Filename##num, defFilename, PF_FILENAME)\
++	ADD_STRINGPROP_FLAG(SkinName##num, "", PF_FILENAME)\
++	ADD_LONGINTPROP(Count##num, 16)\
++	ADD_REALPROP(Speed##num, 50.0f)\
++	ADD_REALPROP(Size##num, 10.0f)\
++	ADD_REALPROP_FLAG(SpawnRadius##num, 500.0f, PF_RADIUS)\
++	ADD_COLORPROP(ColorMin##num, 255.0f, 255.0f, 255.0f)\
++	ADD_COLORPROP(ColorMax##num, 255.0f, 255.0f, 255.0f)\
++	ADD_VECTORPROP_VAL(AnglesVel##num, 1.0f, 1.0f, 1.0f)
+ 	
+ 
+ 
+diff --git a/proj/AVP2/ObjectDLL/AINode.cpp b/proj/AVP2/ObjectDLL/AINode.cpp
+--- a/proj/AVP2/ObjectDLL/AINode.cpp
++++ b/proj/AVP2/ObjectDLL/AINode.cpp
+@@ -1001,7 +1001,7 @@
+ 		LTCounter poly_counter;
+ 		g_pLTServer->StartCounter(&poly_counter);
+ #endif
+-		g_pLTServer->FindPoliesTouchingBox(m_vPos - vDims, m_vPos + vDims, hPolies, nNumPolies, &nNumPoliesFound, IgnoreAIVolumes );
++		g_pLTServer->FindPoliesTouchingBox(m_vPos - vDims, m_vPos + vDims, hPolies, nNumPolies, &nNumPoliesFound, IgnoreAIVolumes, LTNULL );
+ 
+ #ifdef WWNODE_PROFILE
+ 		const uint32 nPolyTicks = g_pLTServer->EndCounter(&poly_counter);
+diff --git a/proj/AVP2/ObjectDLL/AIRykov.cpp b/proj/AVP2/ObjectDLL/AIRykov.cpp
+--- a/proj/AVP2/ObjectDLL/AIRykov.cpp
++++ b/proj/AVP2/ObjectDLL/AIRykov.cpp
+@@ -20,9 +20,9 @@
+ 
+ 
+ #define ADD_GOAL_DEFAULTS(number, group, type, priority) \
+-		ADD_STRINGPROP_FLAG_HELP(GoalType_##number##, type, (group) | PF_DYNAMICLIST, "Type of goal.") \
+-		ADD_OBJECTPROP_FLAG_HELP(Link_##number##, "", group, "Link to an object used by the goal (can be null).") \
+-		ADD_STRINGPROP_FLAG_HELP(Parameters_##number##, "", group, "Other parameters for goal (ie. TARGET=Player).")
++		ADD_STRINGPROP_FLAG_HELP(GoalType_##number, type, (group) | PF_DYNAMICLIST, "Type of goal.") \
++		ADD_OBJECTPROP_FLAG_HELP(Link_##number, "", group, "Link to an object used by the goal (can be null).") \
++		ADD_STRINGPROP_FLAG_HELP(Parameters_##number, "", group, "Other parameters for goal (ie. TARGET=Player).")
+ 
+ BEGIN_CLASS(AIRykov)
+ 
+diff --git a/proj/AVP2/ObjectDLL/ClientWeaponSFX.cpp b/proj/AVP2/ObjectDLL/ClientWeaponSFX.cpp
+--- a/proj/AVP2/ObjectDLL/ClientWeaponSFX.cpp
++++ b/proj/AVP2/ObjectDLL/ClientWeaponSFX.cpp
+@@ -153,7 +153,7 @@
+ #ifdef __LINUX
+ 	pMark->Setup(const_cast<CLIENTWEAPONFX &>(theStruct));
+ #else
+-	pMark->Setup((CLIENTWEAPONFX)theStruct);
++	pMark->Setup(AsLvalue<CLIENTWEAPONFX>((CLIENTWEAPONFX)theStruct));
+ #endif
+ }
+ 
+diff --git a/proj/AVP2/ObjectDLL/ClientLightFX.cpp b/proj/AVP2/ObjectDLL/ClientLightFX.cpp
+--- a/proj/AVP2/ObjectDLL/ClientLightFX.cpp
++++ b/proj/AVP2/ObjectDLL/ClientLightFX.cpp
+@@ -453,7 +453,7 @@
+ 	HSTRING hMsg = g_pServerDE->ReadFromMessageHString(hRead);
+ 	std::string message = g_pServerDE->GetStringData( hMsg );
+ 
+-	std::transform(message.begin(), message.end(), message.begin(), toupper);
++	std::transform(message.begin(), message.end(), message.begin(), ::toupper);
+ 
+ 	DDWORD dwUsrFlags = g_pServerDE->GetObjectUserFlags(m_hObject);
+ 	DDWORD dwFlags    = g_pServerDE->GetObjectFlags(m_hObject);
+diff --git a/proj/AVP2/ObjectDLL/Character.cpp b/proj/AVP2/ObjectDLL/Character.cpp
+--- a/proj/AVP2/ObjectDLL/Character.cpp
++++ b/proj/AVP2/ObjectDLL/Character.cpp
+@@ -5115,7 +5115,7 @@
+ 
+ 	// Set function pointer for exosuit energy
+ #ifndef __LINUX
+-	fpUpdateExoEnergy = IsExosuit(m_cmMovement.GetCharacterButes()) ? UpdateExoEnergy : LTNULL;
++	fpUpdateExoEnergy = IsExosuit(m_cmMovement.GetCharacterButes()) ? &CCharacter::UpdateExoEnergy : LTNULL;
+ #else
+ 	if (IsExosuit(m_cmMovement.GetCharacterButes()))
+ 		fpUpdateExoEnergy = &CCharacter::UpdateExoEnergy;
+@@ -8908,7 +8908,7 @@
+ 
+ 	// Set function pointer for exosuit energy
+ #ifndef __LINUX
+-	fpUpdateExoEnergy = IsExosuit(m_cmMovement.GetCharacterButes()) ? UpdateExoEnergy : LTNULL;
++	fpUpdateExoEnergy = IsExosuit(m_cmMovement.GetCharacterButes()) ? &CCharacter::UpdateExoEnergy : LTNULL;
+ #else
+ 	if (IsExosuit(m_cmMovement.GetCharacterButes()))
+ 		fpUpdateExoEnergy = &CCharacter::UpdateExoEnergy;
+diff --git a/proj/AVP2/ObjectDLL/Explosion.cpp b/proj/AVP2/ObjectDLL/Explosion.cpp
+--- a/proj/AVP2/ObjectDLL/Explosion.cpp
++++ b/proj/AVP2/ObjectDLL/Explosion.cpp
+@@ -284,7 +284,7 @@
+ 	else
+ 		hDamager = m_hObject;
+ #else
+-	HOBJECT hDamager = m_hFiredFrom ? m_hFiredFrom : m_hObject;
++	HOBJECT hDamager = m_hFiredFrom ? (HOBJECT)m_hFiredFrom : m_hObject;
+ #endif
+ 
+ 	LTVector vObjPos;
+diff --git a/proj/AVP2/ObjectDLL/fsm.h b/proj/AVP2/ObjectDLL/fsm.h
+--- a/proj/AVP2/ObjectDLL/fsm.h
++++ b/proj/AVP2/ObjectDLL/fsm.h
+@@ -15,6 +15,12 @@
+ 
+ 
+ 
++template< class StateType, class MessageType > class FiniteStateMachine;
++template< class StateType, class MessageType >
++ILTMessage & operator<<(ILTMessage & out, const FiniteStateMachine<StateType,MessageType> & val);
++template< class StateType, class MessageType >
++ILTMessage & operator>>(ILTMessage & in, FiniteStateMachine<StateType,MessageType> & val);
++
+ template< class StateType, class MessageType >
+ class FiniteStateMachine
+ {
+@@ -39,9 +45,9 @@
+ 	typedef Callback2v<const FiniteStateMachine &, MessageType> ProcessingMessageCallbackFunction;
+ 	typedef Callback2v<const FiniteStateMachine &, StateType>   NextStateCallbackFunction;
+ 
+-	typedef MessageBuffer::const_iterator const_MessageIterator;
++	typedef typename MessageBuffer::const_iterator const_MessageIterator;
+ 
+-#ifdef _WIN32
++#ifdef _MSC_VER
+ 	friend ILTMessage & operator<<(ILTMessage & out, const FiniteStateMachine & val);
+ 	friend ILTMessage & operator>>(ILTMessage & in, FiniteStateMachine & val);
+ #else
+@@ -515,7 +521,7 @@
+ {
+ 	if( IsValid(state_id) ) 
+ 	{
+-		StateMap::const_iterator iter = states.find(state_id);
++		typename StateMap::const_iterator iter = states.find(state_id);
+ 		if( iter != states.end() )
+ 		{
+ 			const StateData & original_data = iter->second;
+@@ -532,7 +538,7 @@
+ {
+ 	if( IsValid(state_id) ) 
+ 	{
+-		StateMap::const_iterator iter = states.find(state_id);
++		typename StateMap::const_iterator iter = states.find(state_id);
+ 		if( iter != states.end() )
+ 		{
+ 			const StateData & original_data = iter->second;
+@@ -551,7 +557,7 @@
+ {
+ 	if( IsValid(original_state) )
+ 	{
+-		StateMap::const_iterator iter = states.find(original_state);
++		typename StateMap::const_iterator iter = states.find(original_state);
+ 		if( iter != states.end() )
+ 		{
+ 			const StateData & original_data = iter->second;
+@@ -579,7 +585,7 @@
+ {
+ 	if( IsValid(original_state) )
+ 	{
+-		StateMap::const_iterator iter = states.find(original_state);
++		typename StateMap::const_iterator iter = states.find(original_state);
+ 		if( iter != states.end() )
+ 		{
+ 			const StateData & original_data = iter->second;
+@@ -589,7 +595,7 @@
+ 				return original_data.automatic;
+ 			}
+ 
+-			TransitionMap::const_iterator transition_iter = original_data.transitions.find(message);
++			typename TransitionMap::const_iterator transition_iter = original_data.transitions.find(message);
+ 			if( transition_iter != original_data.transitions.end() )
+ 			{
+ 				return transition_iter->second;
+@@ -610,7 +616,7 @@
+ {
+ 	if( HasDefault(message) )
+ 	{
+-		TransitionMap::const_iterator iter = defaults.find(message);
++		typename TransitionMap::const_iterator iter = defaults.find(message);
+ 		if( iter != defaults.end() )
+ 		{
+ 			return iter->second;
+@@ -623,7 +629,7 @@
+ template< class StateType, class MessageType >
+ LMessage & operator<<(LMessage & out, const FiniteStateMachine<StateType,MessageType> & val)
+ {
+-	typedef FiniteStateMachine<StateType,MessageType>::MessageBuffer MessageBuffer;
++	typedef typename FiniteStateMachine<StateType,MessageType>::MessageBuffer MessageBuffer;
+ 
+ 	// Save our state.
+ 	out.WriteByte( val.currentStatePtr != 0 );
+@@ -632,7 +638,7 @@
+ 
+ 	// Save our message buffer.
+ 	out.WriteDWord(val.messages.size());
+-	for( MessageBuffer::const_iterator iter = val.messages.begin();
++	for( typename MessageBuffer::const_iterator iter = val.messages.begin();
+ 		 iter != val.messages.end(); ++iter )
+ 	{
+ 		out.WriteDWord(*iter);
+diff --git a/proj/AVP2/ObjectDLL/AIRykovExosuit.cpp b/proj/AVP2/ObjectDLL/AIRykovExosuit.cpp
+--- a/proj/AVP2/ObjectDLL/AIRykovExosuit.cpp
++++ b/proj/AVP2/ObjectDLL/AIRykovExosuit.cpp
+@@ -24,9 +24,9 @@
+ 
+ 
+ #define ADD_GOAL_DEFAULTS(number, group, type, priority) \
+-		ADD_STRINGPROP_FLAG_HELP(GoalType_##number##, type, (group) | PF_DYNAMICLIST, "Type of goal.") \
+-		ADD_OBJECTPROP_FLAG_HELP(Link_##number##, "", group, "Link to an object used by the goal (can be null).") \
+-		ADD_STRINGPROP_FLAG_HELP(Parameters_##number##, "", group, "Other parameters for goal (ie. TARGET=Player).")
++		ADD_STRINGPROP_FLAG_HELP(GoalType_##number, type, (group) | PF_DYNAMICLIST, "Type of goal.") \
++		ADD_OBJECTPROP_FLAG_HELP(Link_##number, "", group, "Link to an object used by the goal (can be null).") \
++		ADD_STRINGPROP_FLAG_HELP(Parameters_##number, "", group, "Other parameters for goal (ie. TARGET=Player).")
+ 
+ BEGIN_CLASS(AIRykovExosuit)
+ 
+diff --git a/proj/AVP2/ObjectDLL/CinematicTrigger.cpp b/proj/AVP2/ObjectDLL/CinematicTrigger.cpp
+--- a/proj/AVP2/ObjectDLL/CinematicTrigger.cpp
++++ b/proj/AVP2/ObjectDLL/CinematicTrigger.cpp
+@@ -32,18 +32,18 @@
+ CinematicTrigger::CinematicTriggerList CinematicTrigger::m_sCinematicTriggers;
+ 
+ #define ADD_DIALOGUE_PROP(num, group) \
+-	ADD_REALPROP_FLAG_HELP(Delay##num##, 0.0f, group, "If this value is -1.0 then this element will be ignored.")\
+-	ADD_STRINGPROP_FLAG(Dialogue##num##, 0, group | PF_FILENAME)\
+-	ADD_OBJECTPROP_FLAG(WhoPlaysDialogue##num##, "", group)\
+-	ADD_STRINGPROP_FLAG(Expression##num##,"", group)\
+-	ADD_OBJECTPROP_FLAG(StartDialogueTriggerTarget##num##, "", group)\
+-	ADD_STRINGPROP_FLAG(StartDialogueTriggerMsg##num##, "", group)\
+-	ADD_OBJECTPROP_FLAG(WhoPlaysDecisions##num##, "", group)\
+-	ADD_STRINGPROP_FLAG(Decisions##num##, "", group)\
+-	ADD_STRINGPROP_FLAG(Replies##num##, "", group)\
+-	ADD_OBJECTPROP_FLAG(RepliesTriggerTarget##num##, "", group)\
+-	ADD_STRINGPROP_FLAG(RepliesTriggerMsg##num##, "", group)\
+-    ADD_BOOLPROP_FLAG(Window##num##, LTFALSE, group)
++	ADD_REALPROP_FLAG_HELP(Delay##num, 0.0f, group, "If this value is -1.0 then this element will be ignored.")\
++	ADD_STRINGPROP_FLAG(Dialogue##num, 0, group | PF_FILENAME)\
++	ADD_OBJECTPROP_FLAG(WhoPlaysDialogue##num, "", group)\
++	ADD_STRINGPROP_FLAG(Expression##num,"", group)\
++	ADD_OBJECTPROP_FLAG(StartDialogueTriggerTarget##num, "", group)\
++	ADD_STRINGPROP_FLAG(StartDialogueTriggerMsg##num, "", group)\
++	ADD_OBJECTPROP_FLAG(WhoPlaysDecisions##num, "", group)\
++	ADD_STRINGPROP_FLAG(Decisions##num, "", group)\
++	ADD_STRINGPROP_FLAG(Replies##num, "", group)\
++	ADD_OBJECTPROP_FLAG(RepliesTriggerTarget##num, "", group)\
++	ADD_STRINGPROP_FLAG(RepliesTriggerMsg##num, "", group)\
++    ADD_BOOLPROP_FLAG(Window##num, LTFALSE, group)
+ 
+ 
+ BEGIN_CLASS(CinematicTrigger)
+diff --git a/proj/AVP2/ObjectDLL/AIAnimButeMgr.cpp b/proj/AVP2/ObjectDLL/AIAnimButeMgr.cpp
+--- a/proj/AVP2/ObjectDLL/AIAnimButeMgr.cpp
++++ b/proj/AVP2/ObjectDLL/AIAnimButeMgr.cpp
+@@ -29,7 +29,7 @@
+ 	if( !pStr )
+ 		return;
+ 
+-	std::transform(pStr->begin(), pStr->end(), pStr->begin(), tolower);
++	std::transform(pStr->begin(), pStr->end(), pStr->begin(), ::tolower);
+ }
+ 
+ 
+diff --git a/proj/AVP2/ClientShellDLL/MessageMgr.cpp b/proj/AVP2/ClientShellDLL/MessageMgr.cpp
+--- a/proj/AVP2/ClientShellDLL/MessageMgr.cpp
++++ b/proj/AVP2/ClientShellDLL/MessageMgr.cpp
+@@ -940,7 +940,7 @@
+ 
+ 
+ 			// Go through each message and calculate the extents
+-			for(int i = 0; i < nMessages; i++)
++			int i; for (i = 0; i < nMessages; i++)
+ 			{
+ 				int nIndex = nFirst + i;
+ 
+diff --git a/proj/AVP2/ClientShellDLL/ViewModeMGR.cpp b/proj/AVP2/ClientShellDLL/ViewModeMGR.cpp
+--- a/proj/AVP2/ClientShellDLL/ViewModeMGR.cpp
++++ b/proj/AVP2/ClientShellDLL/ViewModeMGR.cpp
+@@ -566,7 +566,7 @@
+ 
+ 
+ 	// First time turns off the old one
+-	for (ViewModeData::StarLightList::iterator iter = data->m_StarLightList.begin(); 
++	ViewModeData::StarLightList::iterator iter; for (iter = data->m_StarLightList.begin(); 
+ 		iter != data->m_StarLightList.end(); ++iter)
+ 	{
+ 		(*iter)->SetMode(mode);
+diff --git a/proj/AVP2/ClientShellDLL/PVFXMgr.cpp b/proj/AVP2/ClientShellDLL/PVFXMgr.cpp
+--- a/proj/AVP2/ClientShellDLL/PVFXMgr.cpp
++++ b/proj/AVP2/ClientShellDLL/PVFXMgr.cpp
+@@ -33,7 +33,7 @@
+ 
+ 	// Set up arrays...
+ 
+-	for (int i=0; i < PVFX_MAX_SCALE_FX; i++)
++	int i; for (i =0; i < PVFX_MAX_SCALE_FX; i++)
+ 	{
+ 		m_ScaleFX[i].pFX = &(m_prvtScaleFX[i]);
+ 	}
+@@ -89,7 +89,7 @@
+ 		{
+ 			// Add the sounds...
+ 
+-			for (int j=0; j < pFX->nNumSoundFX; j++)
++			int j; for (j =0; j < pFX->nNumSoundFX; j++)
+ 			{
+ 				AddSoundFX(g_pFXButeMgr->GetSoundFX(pFX->aSoundFXTypes[j]),
+ 					pFX->szName);
+@@ -139,7 +139,7 @@
+ {
+     HOBJECT hFX = LTNULL;
+ 
+-	for (int i=0; i < PVFX_MAX_SCALE_FX; i++)
++	int i; for (i =0; i < PVFX_MAX_SCALE_FX; i++)
+ 	{
+ 		hFX = m_ScaleFX[i].pFX->GetObject();
+ 		if (hFX)
+@@ -335,7 +335,7 @@
+ 	// to NULL because these pointers point into our m_prvtXXX static special
+ 	// fx arrays (i.e., these pointers are always valid)...
+ 
+-	for (int i=0; i < PVFX_MAX_SCALE_FX; i++)
++	int i; for (i =0; i < PVFX_MAX_SCALE_FX; i++)
+ 	{
+ 		m_ScaleFX[i].Term();
+ 	}
+@@ -412,7 +412,7 @@
+ 
+ 	// Update all the used scale fx...
+ 
+-	for (int i=0; i < PVFX_MAX_SCALE_FX; i++)
++	int i; for (i =0; i < PVFX_MAX_SCALE_FX; i++)
+ 	{
+ 		if (m_ScaleFX[i].bUsed && m_ScaleFX[i].hSocket != INVALID_MODEL_SOCKET)
+ 		{
+@@ -503,7 +503,7 @@
+ 
+ 	// Hide/Show all scale fx...
+ 
+-	for (int i=0; i < PVFX_MAX_SCALE_FX; i++)
++	int i; for (i =0; i < PVFX_MAX_SCALE_FX; i++)
+ 	{
+ 		if (m_ScaleFX[i].pName && m_ScaleFX[i].bUsed)
+ 		{
+@@ -565,7 +565,7 @@
+ 
+ 	// Hide/Show all scale fx...
+ 
+-	for (int i=0; i < PVFX_MAX_SCALE_FX; i++)
++	int i; for (i =0; i < PVFX_MAX_SCALE_FX; i++)
+ 	{
+ 		if (m_ScaleFX[i].pName && m_ScaleFX[i].bUsed)
+ 		{
+@@ -610,7 +610,7 @@
+ 
+ 	// Update all the used scale fx...
+ 
+-	for (int i=0; i < PVFX_MAX_SCALE_FX; i++)
++	int i; for (i =0; i < PVFX_MAX_SCALE_FX; i++)
+ 	{
+ 		if (m_ScaleFX[i].bUsed)
+ 		{
+diff --git a/proj/AVP2/ClientShellDLL/PerformanceMgr.cpp b/proj/AVP2/ClientShellDLL/PerformanceMgr.cpp
+--- a/proj/AVP2/ClientShellDLL/PerformanceMgr.cpp
++++ b/proj/AVP2/ClientShellDLL/PerformanceMgr.cpp
+@@ -355,7 +355,7 @@
+ 				char *pName = strtok(file.name,".");
+ 				SAFE_STRCPY(pCfg->szName,pName);
+ 
+-				std::string str = m_buteMgr.GetString("General","Name");
++				std::string str = (const char*)(m_buteMgr.GetString("General","Name"));
+ 				SAFE_STRCPY(pCfg->szNiceName,str.c_str());
+ 
+ 				for (int i = 0; i < kNumSettings; i++)
+@@ -431,9 +431,9 @@
+ 	if(nGroups > kNumGroups)
+ 		nGroups = kNumGroups;
+ 
+-	for (int level = 0; level < 5; level++)
++	int level; for (level = 0; level < 5; level++)
+ 	{
+-		for (int grp = 0; grp < nGroups; grp++)
++		int grp; for (grp = 0; grp < nGroups; grp++)
+ 		{
+ 			if (pOffsetArray[grp] != sDetailGroups[grp].nSetting[level])
+ 				break;
+diff --git a/proj/AVP2/ClientShellDLL/BaseScaleFX.h b/proj/AVP2/ClientShellDLL/BaseScaleFX.h
+--- a/proj/AVP2/ClientShellDLL/BaseScaleFX.h
++++ b/proj/AVP2/ClientShellDLL/BaseScaleFX.h
+@@ -19,7 +19,7 @@
+ #include "FrameRateMgr.h"
+ #include <string>
+ 
+-extern enum FRState;
++enum FRState;
+ 
+ enum BSPriority
+ {
+diff --git a/proj/AVP2/ClientShellDLL/LoadingScreen.cpp b/proj/AVP2/ClientShellDLL/LoadingScreen.cpp
+--- a/proj/AVP2/ClientShellDLL/LoadingScreen.cpp
++++ b/proj/AVP2/ClientShellDLL/LoadingScreen.cpp
+@@ -426,7 +426,7 @@
+ 	if ((m_eCurState != STATE_ACTIVE) && (m_eCurState != STATE_SHOW))
+ 		return LTFALSE;
+ 
+-	g_pLTClient->ClearScreen(LTNULL, CLEARSCREEN_SCREEN | CLEARSCREEN_RENDER);
++	g_pLTClient->ClearScreen(LTNULL, CLEARSCREEN_SCREEN | CLEARSCREEN_RENDER, LTNULL);
+ 	// Mmm..  Triple dimensional...
+ 	g_pLTClient->Start3D();
+ 
+diff --git a/proj/AVP2/ClientShellDLL/LTDecisionWnd.cpp b/proj/AVP2/ClientShellDLL/LTDecisionWnd.cpp
+--- a/proj/AVP2/ClientShellDLL/LTDecisionWnd.cpp
++++ b/proj/AVP2/ClientShellDLL/LTDecisionWnd.cpp
+@@ -306,7 +306,7 @@
+ 		return FALSE;
+ 
+ 	// Term the decision windows
+-	for(int i=0;i<MAX_DECISIONS;i++)
++	int i; for (i =0;i<MAX_DECISIONS;i++)
+ 	{
+ 		m_DecisionWnds[i].SetText(NULL);
+ 	}
+diff --git a/proj/AVP2/ClientShellDLL/PlayerStats.cpp b/proj/AVP2/ClientShellDLL/PlayerStats.cpp
+--- a/proj/AVP2/ClientShellDLL/PlayerStats.cpp
++++ b/proj/AVP2/ClientShellDLL/PlayerStats.cpp
+@@ -278,7 +278,7 @@
+ 	UpdateArmor(0);
+ 
+ 	int nNumAmmoPools = g_pWeaponMgr->GetNumAmmoPools();
+-	for (DBYTE i = 0; i < nNumAmmoPools; i++)
++	DBYTE i; for (i = 0; i < nNumAmmoPools; i++)
+ 	{
+ 		UpdateAmmo(i, 0);
+ 	}
+@@ -1484,7 +1484,7 @@
+ 
+ 	int nNumAmmoPoolTypes = g_pWeaponMgr->GetNumAmmoPools();
+ 	AMMO_POOL* pPool = LTNULL;
+-	for (DBYTE i = 0; i < nNumAmmoPoolTypes; i++)
++	DBYTE i; for (i = 0; i < nNumAmmoPoolTypes; i++)
+ 	{
+ 		pPool = g_pWeaponMgr->GetAmmoPool(i);
+ 
+@@ -1552,7 +1552,7 @@
+ 
+ 	int nNumAmmoPools = g_pWeaponMgr->GetNumAmmoPools();
+ 	AMMO_POOL* pPool = LTNULL;
+-	for (DBYTE i = 0; i < nNumAmmoPools; i++)
++	DBYTE i; for (i = 0; i < nNumAmmoPools; i++)
+ 	{
+ 		pPool = g_pWeaponMgr->GetAmmoPool(i);
+ 
+diff --git a/proj/AVP2/ClientShellDLL/OverlayMGR.cpp b/proj/AVP2/ClientShellDLL/OverlayMGR.cpp
+--- a/proj/AVP2/ClientShellDLL/OverlayMGR.cpp
++++ b/proj/AVP2/ClientShellDLL/OverlayMGR.cpp
+@@ -204,7 +204,7 @@
+ 	else
+ 	{
+ 		//remove net overlay
+-		RemoveOverlay(m_pData, Overlay::Type::NET);
++		RemoveOverlay(m_pData, Overlay::NET);
+ 	}
+ 
+ 	//now set the data
+@@ -227,7 +227,7 @@
+ 	else
+ 	{
+ 		//remove net overlay
+-		RemoveOverlay(m_pData, Overlay::Type::RAIL);
++		RemoveOverlay(m_pData, Overlay::RAIL);
+ 	}
+ 
+ 	//now set the data
+@@ -255,7 +255,7 @@
+ 	else
+ 	{
+ 		//remove net overlay
+-		RemoveOverlay(m_pData, Overlay::Type::ZOOM);
++		RemoveOverlay(m_pData, Overlay::ZOOM);
+ 	}
+ 
+ 	//now set the data
+@@ -278,7 +278,7 @@
+ 	else
+ 	{
+ 		//remove net overlay
+-		RemoveOverlay(m_pData, Overlay::Type::FIRE);
++		RemoveOverlay(m_pData, Overlay::FIRE);
+ 	}
+ 
+ 	//now set the data
+@@ -301,7 +301,7 @@
+ 	else
+ 	{
+ 		//remove evac overlay
+-		RemoveOverlay(m_pData, Overlay::Type::EVAC);
++		RemoveOverlay(m_pData, Overlay::EVAC);
+ 	}
+ 
+ 	//now set the data
+@@ -316,7 +316,7 @@
+ 	if(!m_pData->m_bEvacMode)
+ 		return;
+ 
+-	HOBJECT hObj = FindOverlayObject(m_pData, Overlay::Type::EVAC);
++	HOBJECT hObj = FindOverlayObject(m_pData, Overlay::EVAC);
+ 
+ 	if(hObj)
+ 	{
+@@ -332,7 +332,7 @@
+ 	if(!m_pData->m_bEvacMode)
+ 		return;
+ 
+-	HOBJECT hObj = FindOverlayObject(m_pData, Overlay::Type::EVAC);
++	HOBJECT hObj = FindOverlayObject(m_pData, Overlay::EVAC);
+ 
+ 	if(hObj)
+ 	{
+@@ -358,8 +358,8 @@
+ 	else
+ 	{
+ 		//remove orient overlays
+-		RemoveOverlay(m_pData, Overlay::Type::ORIENT1);
+-		RemoveOverlay(m_pData, Overlay::Type::ORIENT2);
++		RemoveOverlay(m_pData, Overlay::ORIENT1);
++		RemoveOverlay(m_pData, Overlay::ORIENT2);
+ 	}
+ 
+ 	//now set the data
+@@ -374,8 +374,8 @@
+ 	if(!m_pData->m_bOrientMode)
+ 		return;
+ 
+-	HOBJECT hObj1 = FindOverlayObject(m_pData, Overlay::Type::ORIENT1);
+-	HOBJECT hObj2 = FindOverlayObject(m_pData, Overlay::Type::ORIENT2);
++	HOBJECT hObj1 = FindOverlayObject(m_pData, Overlay::ORIENT1);
++	HOBJECT hObj2 = FindOverlayObject(m_pData, Overlay::ORIENT2);
+ 
+ 	LTRotation rRot;
+ 
+@@ -401,7 +401,7 @@
+ 	// go through all the elements
+ 	for(OverlayHandleList::iterator iter = m_pData->m_ObjectList.begin(); iter != m_pData->m_ObjectList.end(); ++iter)
+ 	{
+-		if((*iter)->eType == Overlay::Type::NORMAL)
++		if((*iter)->eType == Overlay::NORMAL)
+ 		{
+ 			//found it!
+ 			uint32 dwFlags = g_pLTClient->GetObjectFlags((*iter)->hObj);
+@@ -509,7 +509,7 @@
+ 	// Fill in a new structure
+ 	Overlay* newObject = new Overlay;
+ 
+-	newObject->eType = Overlay::Type::FIRE;
++	newObject->eType = Overlay::FIRE;
+ 	newObject->hObj	= g_pLTClient->CreateObject(&objectStruct);
+ 	newObject->fSize = DEFAULT_SPRITE_SIZE;
+ 
+@@ -542,7 +542,7 @@
+ 	// Fill in a new structure
+ 	Overlay* newObject = new Overlay;
+ 
+-	newObject->eType = Overlay::Type::NET;
++	newObject->eType = Overlay::NET;
+ 	newObject->hObj	= g_pLTClient->CreateObject(&objectStruct);
+ 	newObject->fSize = DEFAULT_SPRITE_SIZE;
+ 
+@@ -573,7 +573,7 @@
+ 	// Fill in a new structure
+ 	Overlay* newObject = new Overlay;
+ 
+-	newObject->eType = Overlay::Type::RAIL;
++	newObject->eType = Overlay::RAIL;
+ 	newObject->hObj	= g_pLTClient->CreateObject(&objectStruct);
+ 	newObject->fSize = 510.0f;
+ 
+@@ -604,7 +604,7 @@
+ 	// Fill in a new structure
+ 	Overlay* newObject = new Overlay;
+ 
+-	newObject->eType = Overlay::Type::ZOOM;
++	newObject->eType = Overlay::ZOOM;
+ 	newObject->hObj	= g_pLTClient->CreateObject(&objectStruct);
+ 	newObject->fSize = DEFAULT_SPRITE_SIZE;
+ 
+@@ -636,7 +636,7 @@
+ 	// Fill in a new structure
+ 	Overlay* newObject = new Overlay;
+ 
+-	newObject->eType = Overlay::Type::EVAC;
++	newObject->eType = Overlay::EVAC;
+ 	newObject->hObj	= g_pLTClient->CreateObject(&objectStruct);
+ 	newObject->fSize = DEFAULT_SPRITE_SIZE;
+ 
+@@ -669,7 +669,7 @@
+ 	// Fill in a new structure
+ 	Overlay* newObject = new Overlay;
+ 
+-	newObject->eType = Overlay::Type::ORIENT1;
++	newObject->eType = Overlay::ORIENT1;
+ 	newObject->hObj	= g_pLTClient->CreateObject(&objectStruct);
+ 	newObject->fSize = DEFAULT_SPRITE_SIZE;
+ 
+@@ -679,7 +679,7 @@
+ 	// Fill in a new structure
+ 	newObject = new Overlay;
+ 
+-	newObject->eType = Overlay::Type::ORIENT2;
++	newObject->eType = Overlay::ORIENT2;
+ 	newObject->hObj	= g_pLTClient->CreateObject(&objectStruct);
+ 	newObject->fSize = DEFAULT_SPRITE_SIZE;
+ 
+@@ -740,7 +740,7 @@
+ 				// Fill in a new structure
+ 				Overlay* newObject = new Overlay;
+ 
+-				newObject->eType = Overlay::Type::NORMAL;
++				newObject->eType = Overlay::NORMAL;
+ 				newObject->hObj	= g_pLTClient->CreateObject(&objectStruct);
+ 				newObject->fRotSpeed = (*iter).m_fRotSpeed;
+ 				newObject->fSize = DEFAULT_SPRITE_SIZE;
+diff --git a/proj/AVP2/ClientShellDLL/CheatMgr.cpp b/proj/AVP2/ClientShellDLL/CheatMgr.cpp
+--- a/proj/AVP2/ClientShellDLL/CheatMgr.cpp
++++ b/proj/AVP2/ClientShellDLL/CheatMgr.cpp
+@@ -227,7 +227,7 @@
+ 		return LTFALSE;
+ 
+ 	// Convert it to cheat compatible text
+-	for ( unsigned i = 0; i < strlen(argv[0]); i++ )
++	unsigned i; for (i = 0; i < strlen(argv[0]); i++ )
+ 		buf[i] = ((buf[i] ^ 38) + i) ^ 7;
+ 
+ 	// Then compare the converted text
+diff --git a/proj/AVP2/ClientShellDLL/MultiplayerClientMgr.cpp b/proj/AVP2/ClientShellDLL/MultiplayerClientMgr.cpp
+--- a/proj/AVP2/ClientShellDLL/MultiplayerClientMgr.cpp
++++ b/proj/AVP2/ClientShellDLL/MultiplayerClientMgr.cpp
+@@ -563,7 +563,7 @@
+ 
+ 
+ 	// Free the team strings
+-	for(int i = 0; i < MAX_TEAMS + 1; i++)
++	int i; for (i = 0; i < MAX_TEAMS + 1; i++)
+ 	{
+ 		if(m_szTeams[i])
+ 		{
+@@ -4107,7 +4107,7 @@
+ 
+ 
+ 	// Go through the list and check what teams exist
+-	for(int i = 0; i < MAX_CLIENTS; i++)
++	int i; for (i = 0; i < MAX_CLIENTS; i++)
+ 	{
+ 		if(m_ClientData[i].m_nClientID)
+ 		{
+@@ -4396,7 +4396,7 @@
+ 
+ 	hRead->ReadByteFL(m_nPlayerLimit);
+ 
+-	for(uint8 i = 0; i < MAX_TEAMS; i++)
++	uint8 i; for (i = 0; i < MAX_TEAMS; i++)
+ 	{
+ 		hRead->ReadByteFL(m_nTeamLimits[i]);
+ 		m_TeamData[i].m_nFrags = (int16)hRead->ReadWord();
+diff --git a/proj/AVP2/ClientShellDLL/CharacterFX.cpp b/proj/AVP2/ClientShellDLL/CharacterFX.cpp
+--- a/proj/AVP2/ClientShellDLL/CharacterFX.cpp
++++ b/proj/AVP2/ClientShellDLL/CharacterFX.cpp
+@@ -248,7 +248,7 @@
+ 		m_hCloakAuraSystem = LTNULL;
+ 	}
+ 
+-	for(int i=0; i<3; i++) 
++	int i; for (i =0; i<3; i++) 
+ 		if(m_hFireSystem[i])
+ 		{
+ 			//remove the fire system
+@@ -1674,7 +1674,7 @@
+ 		skinDir += mode.c_str();
+ 		skinDir += "\\";
+ 
+-		for (int i = 0; i < MAX_MODEL_TEXTURES; ++i)
++		int i; for (i = 0; i < MAX_MODEL_TEXTURES; ++i)
+ 		{
+ 			CString skinName = g_pCharacterButeMgr->GetDefaultSkin(m_cs.nCharacterSet, i, skinDir.GetBuffer());
+ 			SAFE_STRCPY(newSkins.m_SkinNames[i], skinName.GetBuffer()); 
+@@ -2178,7 +2178,7 @@
+ 		LTRotation rRot;
+ 		g_pLTClient->GetObjectRotation(m_hServerObject, &rRot);
+ 
+-		for(int i=0; i<3; ++i)
++		int i; for (i =0; i<3; ++i)
+ 		{
+ 			g_pLTClient->SetObjectPos(m_hFireSystem[i], &vPos);
+ 			g_pLTClient->SetObjectRotation(m_hFireSystem[i], &rRot);
+@@ -2792,7 +2792,7 @@
+ 	}
+ 
+ 	// set up the query
+-	for(int i=0; i<3; i++)
++	int i; for (i =0; i<3; i++)
+ 	{
+ 		IQuery.m_From	= myData[i].vStart;
+ 		IQuery.m_To		= myData[i].vStart + (vF * 5000);
+@@ -2863,7 +2863,7 @@
+ {
+ 	ILTModel::LTRayResult Results[3];
+ 
+-	for(int i=0; i<3 ; i++)
++	int i; for (i =0; i<3 ; i++)
+ 	{
+ 		Results[i].m_vOrigin = pData[i].vStart;
+ 		Results[i].m_vDir = vF;
+@@ -3091,7 +3091,7 @@
+ void CCharacterFX::SetSprites(SpriteData* pData, LTVector& vCamF)
+ {
+ 	//loop thru the data and set the visibility
+-	for(int i=0; i<3; i++)
++	int i; for (i =0; i<3; i++)
+ 	{
+ 		uint32 dwFlags = g_pLTClient->GetObjectFlags(m_hTargetingSprites[i]);
+ 		pData[i].bHide?dwFlags &= ~FLAG_VISIBLE:dwFlags |= FLAG_VISIBLE;
+@@ -4267,7 +4267,7 @@
+ 		m_hCloakAuraSystem = LTNULL;
+ 	}
+ 
+-	for(int i=0; i<3; i++)
++	int i; for (i =0; i<3; i++)
+ 	{
+ 		if(m_hFireSystem[i])
+ 		{
+diff --git a/proj/AVP2/ClientShellDLL/HudMgr.cpp b/proj/AVP2/ClientShellDLL/HudMgr.cpp
+--- a/proj/AVP2/ClientShellDLL/HudMgr.cpp
++++ b/proj/AVP2/ClientShellDLL/HudMgr.cpp
+@@ -149,7 +149,7 @@
+ 	m_bShowPickupList = LTFALSE;
+ 
+ 	// Be sure to clean up any old lists...
+-	for( int i=0; i<MAX_PICKUP_LIST; i++)
++	int i; for (i =0; i<MAX_PICKUP_LIST; i++)
+ 		m_PickupList[i].Reset();
+ 
+ 	for( i=0; i<MAX_COUNTER_ITEMS; i++)
+@@ -1018,7 +1018,7 @@
+ 	}
+ 
+ 	//clean up old strings and set new ones
+-	for(uint32 i=0; i < m_nNumBarrels; i++)
++	uint32 i; for (i =0; i < m_nNumBarrels; i++)
+ 	{
+ 		//set active barrel
+ 		if(pBarrel == pPrimBarrel)
+@@ -2548,7 +2548,7 @@
+ void CHudMgr::InitMultiCounter(WEAPON* pNewWeapon)
+ {
+ 	//clean up the old counter items
+-	for(uint32 i=0; i<MAX_COUNTER_ITEMS ; ++i)
++	uint32 i; for (i =0; i<MAX_COUNTER_ITEMS ; ++i)
+ 		m_CounterItems[i].Reset();
+ 
+ 	BARREL* pBarrel = m_pBaseBarrel;
+@@ -2650,7 +2650,7 @@
+ void CHudMgr::InitExoCounter()
+ {
+ 	//clean up the old counter items
+-	for(int i=0; i<MAX_COUNTER_ITEMS ; ++i)
++	int i; for (i =0; i<MAX_COUNTER_ITEMS ; ++i)
+ 		m_CounterItems[i].Reset();
+ 
+ 	//reset active barrel
+@@ -2721,7 +2721,7 @@
+ void CHudMgr::InitNormalCounter	(WEAPON* pNewWeapon)
+ {
+ 	//clean up the old counter items
+-	for(int i=0; i<MAX_COUNTER_ITEMS ; ++i)
++	int i; for (i =0; i<MAX_COUNTER_ITEMS ; ++i)
+ 		m_CounterItems[i].Reset();
+ 
+ 	//get the barrel info
+diff --git a/proj/AVP2/ClientShellDLL/GibFX.cpp b/proj/AVP2/ClientShellDLL/GibFX.cpp
+--- a/proj/AVP2/ClientShellDLL/GibFX.cpp
++++ b/proj/AVP2/ClientShellDLL/GibFX.cpp
+@@ -209,7 +209,7 @@
+ 
+ 	if (fTime > m_fStartTime + m_fFadeTime)
+ 	{
+-		for (int i=0; i < m_nNumGibs; i++)
++		int i; for (i =0; i < m_nNumGibs; i++)
+ 		{
+             LTFLOAT fEndTime = m_fStartTime + m_fGibLife[i];
+ 
+diff --git a/proj/AVP2/ClientShellDLL/DripperFX.cpp b/proj/AVP2/ClientShellDLL/DripperFX.cpp
+--- a/proj/AVP2/ClientShellDLL/DripperFX.cpp
++++ b/proj/AVP2/ClientShellDLL/DripperFX.cpp
+@@ -206,7 +206,7 @@
+ 	// Find the first open drip spot
+ 	int nDripSpot = -1;
+ 
+-	for(int i = 0; i < MAX_DRIPS; i++)
++	int i; for (i = 0; i < MAX_DRIPS; i++)
+ 	{
+ 		if(m_pDrips[i].nState == DRIP_STATE_NONE)
+ 		{
+diff --git a/proj/AVP2/ClientShellDLL/WeaponChooser.cpp b/proj/AVP2/ClientShellDLL/WeaponChooser.cpp
+--- a/proj/AVP2/ClientShellDLL/WeaponChooser.cpp
++++ b/proj/AVP2/ClientShellDLL/WeaponChooser.cpp
+@@ -267,7 +267,7 @@
+ 		
+ 	g_pClientDE->SetSurfaceAlpha(m_ahWeaponSurf[nWepIndex],1.0f);
+ 
+-	for(DBYTE i=0 ; i<m_nMaxWeapons ; i++)
++	DBYTE i; for (i =0 ; i<m_nMaxWeapons ; i++)
+ 	{
+ 		WEAPON* pWep = g_pWeaponMgr->GetWeapon(m_pPlayerStats->GetWeaponFromSet(i));
+ 
+@@ -337,7 +337,7 @@
+ 	
+ 	WEAPON* pWep = g_pWeaponMgr->GetWeapon(m_pPlayerStats->GetWeaponFromSet(m_nCurWeapon));
+ 	
+-	for(int i=m_nCurWeapon; pWep && i<=(int)m_nLastWeapon && !m_pPlayerStats->HaveWeapon(pWep->nId); i++)
++	int i; for (i =m_nCurWeapon; pWep && i<=(int)m_nLastWeapon && !m_pPlayerStats->HaveWeapon(pWep->nId); i++)
+ 	{
+ 		pWep = g_pWeaponMgr->GetWeapon(m_pPlayerStats->GetWeaponFromSet(i+1));
+ 	}
+@@ -364,7 +364,7 @@
+ 	
+ 	WEAPON* pWep = g_pWeaponMgr->GetWeapon(m_pPlayerStats->GetWeaponFromSet(m_nCurWeapon));
+ 	
+-	for(int i=m_nCurWeapon; pWep && i>(int)m_nFirstWeapon && !m_pPlayerStats->HaveWeapon(pWep->nId); i--)
++	int i; for (i =m_nCurWeapon; pWep && i>(int)m_nFirstWeapon && !m_pPlayerStats->HaveWeapon(pWep->nId); i--)
+ 	{
+ 		pWep = g_pWeaponMgr->GetWeapon(m_pPlayerStats->GetWeaponFromSet(i-1));
+ 	}
+@@ -391,7 +391,7 @@
+ 	}
+ 	
+ 	// Need to make sure our list has not changed.
+-	for(DBYTE i=0 ; i<m_nMaxWeapons ; i++)
++	DBYTE i; for (i =0 ; i<m_nMaxWeapons ; i++)
+ 	{
+ 		WEAPON* pWep = g_pWeaponMgr->GetWeapon(m_pPlayerStats->GetWeaponFromSet(i));
+ 		
+@@ -879,7 +879,7 @@
+ 		
+ 	g_pClientDE->SetSurfaceAlpha(m_ahWeaponSurf[nWepIndex],1.0f);
+ 
+-	for(DBYTE i=0 ; i<m_nMaxWeapons ; i++)
++	DBYTE i; for (i =0 ; i<m_nMaxWeapons ; i++)
+ 	{
+ 		WEAPON* pWep = g_pWeaponMgr->GetWeapon(m_pPlayerStats->GetWeaponFromSet(i));
+ 
+@@ -950,7 +950,7 @@
+ 	
+ 	WEAPON* pWep = g_pWeaponMgr->GetWeapon(m_pPlayerStats->GetWeaponFromSet(m_nCurWeapon));
+ 
+-	for(int i=m_nCurWeapon; pWep && i<=(int)m_nLastWeapon && !m_pPlayerStats->HaveWeapon(pWep->nId); i++)
++	int i; for (i =m_nCurWeapon; pWep && i<=(int)m_nLastWeapon && !m_pPlayerStats->HaveWeapon(pWep->nId); i++)
+ 	{
+ 		pWep = g_pWeaponMgr->GetWeapon(m_pPlayerStats->GetWeaponFromSet(i+1));
+ 	}
+@@ -977,7 +977,7 @@
+ 	
+ 	WEAPON* pWep = g_pWeaponMgr->GetWeapon(m_pPlayerStats->GetWeaponFromSet(m_nCurWeapon));
+ 
+-	for(int i=m_nCurWeapon; pWep && i>(int)m_nFirstWeapon && !m_pPlayerStats->HaveWeapon(pWep->nId); i--)
++	int i; for (i =m_nCurWeapon; pWep && i>(int)m_nFirstWeapon && !m_pPlayerStats->HaveWeapon(pWep->nId); i--)
+ 	{
+ 		pWep = g_pWeaponMgr->GetWeapon(m_pPlayerStats->GetWeaponFromSet(i-1));
+ 	}
+@@ -1004,7 +1004,7 @@
+ 	}
+ 
+ 	// Need to make sure our list has not changed.
+-	for(DBYTE i=0 ; i<m_nMaxWeapons ; i++)
++	DBYTE i; for (i =0 ; i<m_nMaxWeapons ; i++)
+ 	{
+ 		WEAPON* pWep = g_pWeaponMgr->GetWeapon(m_pPlayerStats->GetWeaponFromSet(i));
+ 
+diff --git a/proj/AVP2/ClientShellDLL/Credits.cpp b/proj/AVP2/ClientShellDLL/Credits.cpp
+--- a/proj/AVP2/ClientShellDLL/Credits.cpp
++++ b/proj/AVP2/ClientShellDLL/Credits.cpp
+@@ -243,7 +243,7 @@
+ 	else
+ 		pFont = (nWidth <= 640) ? g_pInterfaceResMgr->GetTinyFixedFont() : g_pInterfaceResMgr->GetSmallFixedFont();
+ 
+-	for (int i = 0; i < m_cStrings; i++)
++	int i; for (i = 0; i < m_cStrings; i++)
+ 	{
+ 		strSz = pFont->GetTextExtents(m_aStrings[i]);
+ 		sz.y += strSz.y;
+@@ -859,7 +859,7 @@
+ 
+ 	if (m_bClearScreen)
+ 	{
+-		g_pLTClient->ClearScreen(NULL, CLEARSCREEN_SCREEN);
++		g_pLTClient->ClearScreen(NULL, CLEARSCREEN_SCREEN, LTNULL);
+ 	}
+ 
+ 
+diff --git a/proj/AVP2/ClientShellDLL/MotionDetector.cpp b/proj/AVP2/ClientShellDLL/MotionDetector.cpp
+--- a/proj/AVP2/ClientShellDLL/MotionDetector.cpp
++++ b/proj/AVP2/ClientShellDLL/MotionDetector.cpp
+@@ -132,7 +132,7 @@
+ 	//creat my name
+ 	g_pLayoutMgr->GetGridSurfaceName(s_aSurfaceName, 60);
+ 
+-	for(uint32 i=0 ; i<m_nGridSurfaces ; i++)
++	uint32 i; for (i =0 ; i<m_nGridSurfaces ; i++)
+ 	{
+ 		char	aTemp[60];
+ 		//parse the name
+diff --git a/proj/AVP2/ClientShellDLL/FolderProfile.h b/proj/AVP2/ClientShellDLL/FolderProfile.h
+--- a/proj/AVP2/ClientShellDLL/FolderProfile.h
++++ b/proj/AVP2/ClientShellDLL/FolderProfile.h
+@@ -17,6 +17,9 @@
+ #include <vector>
+ #include <string>
+ 
++#ifdef MAX_PROFILE_LEN
++#undef MAX_PROFILE_LEN
++#endif
+ const int MAX_PROFILE_LEN = 16;
+ 
+ class CFolderProfile : public CBaseFolder
+diff --git a/proj/AVP2/ClientShellDLL/BodyPropFX.cpp b/proj/AVP2/ClientShellDLL/BodyPropFX.cpp
+--- a/proj/AVP2/ClientShellDLL/BodyPropFX.cpp
++++ b/proj/AVP2/ClientShellDLL/BodyPropFX.cpp
+@@ -569,7 +569,7 @@
+ 		LTRotation rRot;
+ 		g_pLTClient->GetObjectRotation(m_hServerObject, &rRot);
+ 
+-		for(int i=0; i<3; ++i)
++		int i; for (i =0; i<3; ++i)
+ 		{
+ 			g_pLTClient->SetObjectPos(m_hFireSystem[i], &vPos);
+ 			g_pLTClient->SetObjectRotation(m_hFireSystem[i], &rRot);
+@@ -955,7 +955,7 @@
+ 		skinDir += mode.c_str();
+ 		skinDir += "\\";
+ 
+-		for (int i = 0; i < MAX_MODEL_TEXTURES; ++i)
++		int i; for (i = 0; i < MAX_MODEL_TEXTURES; ++i)
+ 		{
+ 			CString skinName = g_pCharacterButeMgr->GetDefaultSkin(m_cs.nCharacterSet, i, skinDir.GetBuffer());
+ 			SAFE_STRCPY(newSkins.m_SkinNames[i], skinName.GetBuffer()); 
+diff --git a/proj/AVP2/ClientShellDLL/FolderHostMaps.cpp b/proj/AVP2/ClientShellDLL/FolderHostMaps.cpp
+--- a/proj/AVP2/ClientShellDLL/FolderHostMaps.cpp
++++ b/proj/AVP2/ClientShellDLL/FolderHostMaps.cpp
+@@ -38,7 +38,7 @@
+ 
+ 	int size = strlen(szMap);
+ 
+-	for(char *szTemp = szMap + size; szTemp > szMap; szTemp--)
++	char *szTemp; for (szTemp = szMap + size; szTemp > szMap; szTemp--)
+ 	{
+ 		if(*szTemp == '\\')
+ 		{
+diff --git a/proj/AVP2/ClientShellDLL/VisionModeButeMGR.cpp b/proj/AVP2/ClientShellDLL/VisionModeButeMGR.cpp
+--- a/proj/AVP2/ClientShellDLL/VisionModeButeMGR.cpp
++++ b/proj/AVP2/ClientShellDLL/VisionModeButeMGR.cpp
+@@ -158,7 +158,7 @@
+ 	while (m_buteMgr.Exist(tagName.c_str()))
+ 	{
+ 		// Read the name
+-		std::string name = m_buteMgr.GetString(tagName.c_str(), VISION_SET_NAME.c_str());
++		std::string name = (const char*)(m_buteMgr.GetString(tagName.c_str(), VISION_SET_NAME.c_str()));
+ 
+ 		// Set up for next while loop
+ 		int view = 0;
+@@ -187,7 +187,7 @@
+ 	while (m_buteMgr.Exist(tagName.c_str()))
+ 	{
+ 		// Read the name
+-		std::string name = m_buteMgr.GetString(tagName.c_str(), VISION_MODE_NAME.c_str());
++		std::string name = (const char*)(m_buteMgr.GetString(tagName.c_str(), VISION_MODE_NAME.c_str()));
+ 		// Make a struct for the data
+ 		MasterVisionMode masterVision;
+ 
+@@ -241,7 +241,7 @@
+ 	while (m_buteMgr.Exist(tagName.c_str()))
+ 	{
+ 		// Read the name
+-		std::string name = m_buteMgr.GetString(tagName.c_str(), TEXTURE_STATE_NAME.c_str());
++		std::string name = (const char*)(m_buteMgr.GetString(tagName.c_str(), TEXTURE_STATE_NAME.c_str()));
+ 
+ 		// Set up for next while loop
+ 		int state = 0;
+@@ -289,7 +289,7 @@
+ 	while (m_buteMgr.Exist(tagName.c_str()))
+ 	{
+ 		// Read the name
+-		std::string name = m_buteMgr.GetString(tagName.c_str(), LIGHT_STATE_NAME.c_str());
++		std::string name = (const char*)(m_buteMgr.GetString(tagName.c_str(), LIGHT_STATE_NAME.c_str()));
+ 
+ 		// Set up for next while loop
+ 		int state = 0;
+diff --git a/proj/AVP2/ClientShellDLL/InterfaceMgr.h b/proj/AVP2/ClientShellDLL/InterfaceMgr.h
+--- a/proj/AVP2/ClientShellDLL/InterfaceMgr.h
++++ b/proj/AVP2/ClientShellDLL/InterfaceMgr.h
+@@ -508,7 +508,7 @@
+ {
+ 	for (int i=0; i < 4; i++)
+ 	{
+-		g_pClientDE->ClearScreen(DNULL, CLEARSCREEN_SCREEN);
++		g_pClientDE->ClearScreen(DNULL, CLEARSCREEN_SCREEN, LTNULL);
+ 		g_pClientDE->FlipScreen(0);
+ 	}
+ }
+diff --git a/proj/AVP2/ClientShellDLL/InterfaceMgr.cpp b/proj/AVP2/ClientShellDLL/InterfaceMgr.cpp
+--- a/proj/AVP2/ClientShellDLL/InterfaceMgr.cpp
++++ b/proj/AVP2/ClientShellDLL/InterfaceMgr.cpp
+@@ -204,7 +204,7 @@
+ 	memset(m_hScreenShow, 0, 5*sizeof(HSURFACE));
+ #endif
+ 
+-	for (int i =0; i < NUM_OVERLAY_MASKS; i++)
++	int i; for (i =0; i < NUM_OVERLAY_MASKS; i++)
+ 	{
+ 		hOverlays[i] = DNULL;
+ 		g_vOverlayScaleMult[i] = 1.0f;
+@@ -683,11 +683,11 @@
+ 
+ 	if (m_bClearScreenAlways)
+ 	{
+-		g_pClientDE->ClearScreen(LTNULL, CLEARSCREEN_SCREEN | CLEARSCREEN_RENDER);
++		g_pClientDE->ClearScreen(LTNULL, CLEARSCREEN_SCREEN | CLEARSCREEN_RENDER, LTNULL);
+ 	}
+ 	else if (m_nClearScreenCount)
+ 	{
+-		g_pClientDE->ClearScreen(LTNULL, CLEARSCREEN_SCREEN);
++		g_pClientDE->ClearScreen(LTNULL, CLEARSCREEN_SCREEN, LTNULL);
+ 		m_nClearScreenCount--;
+ 
+ 		// Clear the farz to the void color
+@@ -2997,7 +2997,7 @@
+ 
+ 		if (bBlackScreen)
+ 		{
+-			g_pClientDE->ClearScreen(DNULL, CLEARSCREEN_SCREEN);
++			g_pClientDE->ClearScreen(DNULL, CLEARSCREEN_SCREEN, LTNULL);
+ 			if (fBlackScreenTime > 0.0f)
+ 			{
+ 				fBlackScreenTime -= g_pClientDE->GetFrameTime();
+@@ -3134,7 +3134,7 @@
+ {
+     if (eCurState == GS_MOVIE) return LTFALSE;
+ 
+-	g_pLTClient->ClearScreen(LTNULL, CLEARSCREEN_SCREEN);
++	g_pLTClient->ClearScreen(LTNULL, CLEARSCREEN_SCREEN, LTNULL);
+ 	m_bUseInterfaceCamera = LTTRUE;
+ 
+ 	m_nCurMovie = 0;
+@@ -3478,7 +3478,7 @@
+ #endif
+ 	if (!g_hSplash) return DFALSE;
+ 
+-	g_pClientDE->ClearScreen(DNULL, CLEARSCREEN_SCREEN);
++	g_pClientDE->ClearScreen(DNULL, CLEARSCREEN_SCREEN, LTNULL);
+ 
+ 	// Fade into the splash screen...
+ 
+@@ -4119,9 +4119,9 @@
+     g_pLTClient->SetCameraRect (g_pGameClientShell->GetInterfaceCamera(), LTTRUE, 0, 0, dwWidth, dwHeight);
+ 
+ 	//reset all the camera manager camera rects
+-	g_pCameraMgr->SetCameraRect( g_pGameClientShell->GetPlayerCamera(),		LTRect(0,0,0,0), LTTRUE);
+-	g_pCameraMgr->SetCameraRect( g_pGameClientShell->GetCinematicCamera(),	LTRect(0,0,0,0), LTTRUE);
+-	g_pCameraMgr->SetCameraRect( g_pGameClientShell->Get3rdPersonCamera(),	LTRect(0,0,0,0), LTTRUE);
++	g_pCameraMgr->SetCameraRect( g_pGameClientShell->GetPlayerCamera(),		AsLvalue<LTRect>(LTRect(0,0,0,0)), LTTRUE);
++	g_pCameraMgr->SetCameraRect( g_pGameClientShell->GetCinematicCamera(),	AsLvalue<LTRect>(LTRect(0,0,0,0)), LTTRUE);
++	g_pCameraMgr->SetCameraRect( g_pGameClientShell->Get3rdPersonCamera(),	AsLvalue<LTRect>(LTRect(0,0,0,0)), LTTRUE);
+ 
+ 	//new for AvP3
+ 	ReloadHUD(m_stats.GetCurrentLayout(), LTTRUE);
+@@ -4526,7 +4526,7 @@
+ 			// (and not set m_bScreenFade so we'll be called to 
+ 			// clear the screen every frame until we fade back in)...
+ 
+-			g_pClientDE->ClearScreen(DNULL, CLEARSCREEN_SCREEN);
++			g_pClientDE->ClearScreen(DNULL, CLEARSCREEN_SCREEN, LTNULL);
+ 
+ 
+ 			// Exit the level if necessary...
+diff --git a/proj/AVP2/ClientShellDLL/LayoutMgr.cpp b/proj/AVP2/ClientShellDLL/LayoutMgr.cpp
+--- a/proj/AVP2/ClientShellDLL/LayoutMgr.cpp
++++ b/proj/AVP2/ClientShellDLL/LayoutMgr.cpp
+@@ -356,7 +356,7 @@
+ 	strncpy(szStyle, (char*)(LPCSTR)str, sizeof(szStyle));
+ 
+ 
+-	vPos = buteMgr.GetVector(aTagName, LO_CHAR_POS, CAVector(0.0,0.0,0.0));
++	vPos = buteMgr.GetVector(aTagName, LO_CHAR_POS, AsLvalue<CAVector>(CAVector(0.0,0.0,0.0)));
+ 	fScale = (LTFLOAT)buteMgr.GetDouble(aTagName, LO_CHAR_SCALE, 1.0);
+ 	fRot = (LTFLOAT)buteMgr.GetDouble(aTagName, LO_CHAR_ROT, 1.0);
+ 
+@@ -649,14 +649,14 @@
+ 
+ DIntPt CLayoutMgr::GetPoint(const char *pTag,const char *pAttribute)
+ {
+-	CPoint tmp = m_buteMgr.GetPoint(pTag, pAttribute, CPoint(0,0));
++	CPoint tmp = m_buteMgr.GetPoint(pTag, pAttribute, AsLvalue<CPoint>(CPoint(0,0)));
+ 	DIntPt pt(tmp.x,tmp.y);
+ 	return pt;
+ }
+ 
+ DRect CLayoutMgr::GetRect(const char *pTag,const char *pAttribute)
+ {
+-	CRect tmp = m_buteMgr.GetRect(pTag, pAttribute, CRect(0,0,0,0) );
++	CRect tmp = m_buteMgr.GetRect(pTag, pAttribute, AsLvalue<CRect>(CRect(0,0,0,0)) );
+ 	DRect rect (tmp.left,tmp.top,tmp.right,tmp.bottom);
+ 	return rect;
+ 
+@@ -2560,14 +2560,14 @@
+ 
+ LTIntPt CLayoutMgr::GetPoint(char *pTag,char *pAttribute)
+ {
+-	CPoint tmp = m_buteMgr.GetPoint(pTag, pAttribute, CPoint(0,0));
++	CPoint tmp = m_buteMgr.GetPoint(pTag, pAttribute, AsLvalue<CPoint>(CPoint(0,0)));
+     LTIntPt pt(tmp.x,tmp.y);
+ 	return pt;
+ }
+ 
+ LTRect CLayoutMgr::GetRect(char *pTag,char *pAttribute)
+ {
+-	CRect tmp = m_buteMgr.GetRect(pTag, pAttribute, CRect(0,0,0,0) );
++	CRect tmp = m_buteMgr.GetRect(pTag, pAttribute, AsLvalue<CRect>(CRect(0,0,0,0)) );
+     LTRect rect(tmp.left,tmp.top,tmp.right,tmp.bottom);
+ 	return rect;
+ 
+diff --git a/proj/AVP2/ClientShellDLL/WeaponModel.cpp b/proj/AVP2/ClientShellDLL/WeaponModel.cpp
+--- a/proj/AVP2/ClientShellDLL/WeaponModel.cpp
++++ b/proj/AVP2/ClientShellDLL/WeaponModel.cpp
+@@ -161,7 +161,7 @@
+ 
+ 	m_fNextIdleTime			= 0.0f;
+ 
+-	for (int i=0; i < WM_MAX_FIRE_ANIS; i++)
++	int i; for (i =0; i < WM_MAX_FIRE_ANIS; i++)
+ 	{
+ 		m_nFireAnis[i] = INVALID_ANI;
+ 	}
+@@ -430,7 +430,7 @@
+ 
+ //	m_hLoopSound			= LTNULL;
+ 
+-	for (int i=0; i < WM_MAX_FIRE_ANIS; i++)
++	int i; for (i =0; i < WM_MAX_FIRE_ANIS; i++)
+ 	{
+ 		m_nFireAnis[i] = INVALID_ANI;
+ 	}
+@@ -497,7 +497,7 @@
+ 	char buf[30];
+ 
+ 	//get idle animation indicies
+-	for (int i=0; i < WM_MAX_IDLE_ANIS; i++)
++	int i; for (i =0; i < WM_MAX_IDLE_ANIS; i++)
+ 	{
+ 		sprintf(buf, "Idle%d", i);
+ 		m_nIdleAnis[i] = g_pInterface->GetAnimIndex(m_hObject, buf);
+@@ -4999,7 +4999,7 @@
+ {
+ 	if (dwAni == INVALID_ANI) return LTFALSE;
+ 
+-	for (int i=0; i < WM_MAX_FIRE_ANIS; i++)
++	int i; for (i =0; i < WM_MAX_FIRE_ANIS; i++)
+ 	{
+ 		if (m_nFireAnis[i] == dwAni)
+ 		{
+@@ -5229,7 +5229,7 @@
+ {
+ 	if (dwAni == INVALID_ANI) return LTFALSE;
+ 
+-	for (int i=1; i < WM_MAX_IDLE_ANIS; i++)
++	int i; for (i =1; i < WM_MAX_IDLE_ANIS; i++)
+ 	{
+ 		if (m_nIdleAnis[i] == dwAni)
+ 		{
+diff --git a/proj/AVP2/Shared/BankedList_impl.h b/proj/AVP2/Shared/BankedList_impl.h
+--- a/proj/AVP2/Shared/BankedList_impl.h
++++ b/proj/AVP2/Shared/BankedList_impl.h
+@@ -24,7 +24,7 @@
+     friend class t_Parent::t_Iter;
+ #else
+     friend t_Parent;
+-    friend t_Parent::t_Iter;
++    friend class t_Parent::t_Iter;
+ #endif
+ 
+ 	// Is this bank currently full?
+diff --git a/proj/AVP2/Shared/SoundMgr.cpp b/proj/AVP2/Shared/SoundMgr.cpp
+--- a/proj/AVP2/Shared/SoundMgr.cpp
++++ b/proj/AVP2/Shared/SoundMgr.cpp
+@@ -286,7 +286,7 @@
+ //
+ // ----------------------------------------------------------------------- //
+ 
+-HLTSOUND CSoundMgr::PlaySoundFromPos(LTVector & vPos, char *pName, LTFLOAT fRadius,
++HLTSOUND CSoundMgr::PlaySoundFromPos(LTVector & vPos, const char *pName, LTFLOAT fRadius,
+                                      SoundPriority ePriority, uint32 dwFlags,
+ 									 uint8 nVolume, float fPitchShift)
+ {
+diff --git a/proj/AVP2/Shared/SoundMgr.h b/proj/AVP2/Shared/SoundMgr.h
+--- a/proj/AVP2/Shared/SoundMgr.h
++++ b/proj/AVP2/Shared/SoundMgr.h
+@@ -59,7 +59,7 @@
+ 
+ 		// Play sound from position variations
+ 
+-		HLTSOUND PlaySoundFromPos(LTVector & vPos, char *pName, LTFLOAT fRadius,
++		HLTSOUND PlaySoundFromPos(LTVector & vPos, const char *pName, LTFLOAT fRadius,
+ 			SoundPriority ePriority, uint32 dwFlags=0, uint8 nVolume=SMGR_DEFAULT_VOLUME, float fPitchShift=1.0f);
+ 
+ 		HLTSOUND PlaySoundFromPos(LTVector & vPos, const char *szBute, LTFLOAT fIRad = -1.0f, LTFLOAT fORad = -1.0f);
+diff --git a/proj/AVP2/Shared/PlugFactoryTemplate.h b/proj/AVP2/Shared/PlugFactoryTemplate.h
+--- a/proj/AVP2/Shared/PlugFactoryTemplate.h
++++ b/proj/AVP2/Shared/PlugFactoryTemplate.h
+@@ -48,7 +48,7 @@
+ private:
+ 	// These are protected so the main family factory can make an instance of this
+ 	typedef std::map<KeyT, PlugFactory*> PlugFactoryContainer;
+-	typedef PlugFactoryContainer::iterator PlugIterator;
++	typedef typename PlugFactoryContainer::iterator PlugIterator;
+ 
+ 	// This is needed to force the registry to be initialized before any
+ 	// derived classes use it.
+diff --git a/proj/AVP2/Shared/FXButeMgr.cpp b/proj/AVP2/Shared/FXButeMgr.cpp
+--- a/proj/AVP2/Shared/FXButeMgr.cpp
++++ b/proj/AVP2/Shared/FXButeMgr.cpp
+@@ -5204,7 +5204,7 @@
+ 	nNum = pImpactFX->nNumDebrisFXTypes / nDiv;
+ 	if(pImpactFX->nNumDebrisFXTypes && nNum == 0) nNum = 1;
+ 
+-	for (int i=0; i < nNum; i++)
++	int i; for (i =0; i < nNum; i++)
+ 	{
+ 		DEBRISCREATESTRUCT debris;
+ 		debris.rRot			= cs.rSurfRot;

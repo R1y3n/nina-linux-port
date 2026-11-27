@@ -1355,7 +1355,7 @@ void GUIQuality::DrawTuningMenu()
                     const float avail = std::max(200.0f, ImGui::GetContentRegionAvail().x);
                     const float w = std::min(avail, 730.0f);
                     const float h = std::max(80.0f, w * usedV);
-                    ImGui::Image(reinterpret_cast<ImTextureID>(static_cast<intptr_t>(deluxeTex)),
+                    ImGui::Image(static_cast<ImTextureID>(static_cast<uintptr_t>(deluxeTex)),
                                  ImVec2(w, h), ImVec2(0, 0), ImVec2(1, usedV));
                     ImGui::TextDisabled("RGB = normalized tangent-space incoming-light direction (T,-V,N). Alpha = smooth directional support/visibility; Talon's RGB lightmap remains the light-energy authority. Neutral blue-purple = no dominant direction.");
                 }
@@ -1417,7 +1417,7 @@ void GUIQuality::DrawTuningMenu()
                         if (thumbTex)
                         {
                             const GLuint opaqueThumb = MaterialOpaquePreviewCache::Instance().Get(thumbTex);
-                            ImGui::Image(reinterpret_cast<ImTextureID>(static_cast<intptr_t>(opaqueThumb)), ImVec2(thumbSize, thumbSize), ImVec2(0, 1), ImVec2(1, 0));
+                            ImGui::Image(static_cast<ImTextureID>(static_cast<uintptr_t>(opaqueThumb)), ImVec2(thumbSize, thumbSize), ImVec2(0, 1), ImVec2(1, 0));
                         }
                         else
                             ImGui::Dummy(ImVec2(thumbSize, thumbSize));
@@ -1463,7 +1463,7 @@ void GUIQuality::DrawTuningMenu()
                         const GLuint previewTex = preview.Render(binding, ms, 512, previewUseNormal, previewUseSpec);
                         if (previewTex)
                         {
-                            ImGui::Image(reinterpret_cast<ImTextureID>(static_cast<intptr_t>(previewTex)), ImVec2(previewW, previewW), ImVec2(0, 1), ImVec2(1, 0));
+                            ImGui::Image(static_cast<ImTextureID>(static_cast<uintptr_t>(previewTex)), ImVec2(previewW, previewW), ImVec2(0, 1), ImVec2(1, 0));
                             if (ImGui::IsItemHovered() && ImGui::IsMouseDragging(ImGuiMouseButton_Left))
                                 preview.DragOrbit(ImGui::GetIO().MouseDelta.x, ImGui::GetIO().MouseDelta.y);
                             if (ImGui::IsItemHovered())
@@ -1480,7 +1480,7 @@ void GUIQuality::DrawTuningMenu()
                             if (tex)
                             {
                                 const GLuint opaqueTex = MaterialOpaquePreviewCache::Instance().Get(tex);
-                                ImGui::Image(reinterpret_cast<ImTextureID>(static_cast<intptr_t>(opaqueTex)), ImVec2(96, 96), ImVec2(0, 1), ImVec2(1, 0));
+                                ImGui::Image(static_cast<ImTextureID>(static_cast<uintptr_t>(opaqueTex)), ImVec2(96, 96), ImVec2(0, 1), ImVec2(1, 0));
                             }
                             else
                                 ImGui::Dummy(ImVec2(96, 96));
@@ -1538,7 +1538,7 @@ void GUIQuality::DrawTuningMenu()
                     const float avail = std::max(200.0f, ImGui::GetContentRegionAvail().x);
                     const float w = std::min(avail, 720.0f);
                     const float h = w * (static_cast<float>(RendererCore::Instance().Height()) / std::max(1, RendererCore::Instance().Width()));
-                    ImGui::Image(reinterpret_cast<ImTextureID>(static_cast<intptr_t>(QualityState().debugTex)), ImVec2(w, h), ImVec2(0, 1), ImVec2(1, 0));
+                    ImGui::Image(static_cast<ImTextureID>(static_cast<uintptr_t>(QualityState().debugTex)), ImVec2(w, h), ImVec2(0, 1), ImVec2(1, 0));
                 }
                 ImGui::TextDisabled("SSR input is captured immediately before the SSR ray pass.");
                 ImGui::Text("Post target: %s", QualityState().postReady ? "ready" : "unavailable");

@@ -29,5 +29,5 @@ int main(int argc,char **argv){
   int local; lt_thread_init(&local); lt_install_signals();
   size_t n=snprintf(lt_cmdline,sizeof lt_cmdline,"C:\\lithtech.exe"); for(int i=1;i<argc&&n<sizeof lt_cmdline-4;i++){ int sp=strchr(argv[i],' ')!=NULL; n+=snprintf(lt_cmdline+n,sizeof lt_cmdline-n,sp?" \"%s\"":" %s",argv[i]); }
   for(int i=0;i<lt_iat_n;i++) *(void**)lt_iat_tab[i].slot=lt_resolve_import(lt_iat_tab[i].dll,lt_iat_tab[i].name,lt_iat_tab[i].ord);
-  for(unsigned *p=lt_patch_tab;p[0];p+=2) *(unsigned*)p[0]=p[1];
+  for(unsigned *p=lt_patch_tab;p[0];p+=2) *(unsigned*)p[0]=p[1];snprintf(lt_cmdline + strlen(lt_cmdline), sizeof(lt_cmdline) - strlen(lt_cmdline), " -exec bindings.cfg");
   lt_entry(); return 0; }

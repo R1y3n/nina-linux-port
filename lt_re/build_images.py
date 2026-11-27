@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Derive the memory layout from the PE and write the blobs mapped at the ORIGINAL addresses + linux/layout.h."""
 import sys, pefile, os
-exe = os.environ.get('LT_EXE', '/mnt/user-data/uploads/lithtechreal.exe')
+exe = os.environ.get('LT_EXE', 'lithtechreal.exe')
 pe = pefile.PE(exe); base = pe.OPTIONAL_HEADER.ImageBase; raw = open(exe, 'rb').read()
 S = {s.Name.rstrip(b'\0').decode(): s for s in pe.sections}
 text, rdata, data, rsrc = S['.text'], S['.rdata'], S['.data'], S['.rsrc']

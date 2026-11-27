@@ -5,7 +5,7 @@ Outputs: lifted_all.s, lttext.bin (original .text bytes kept at their VA for tab
 import re,json,collections,pefile,sys
 from capstone import Cs,CS_ARCH_X86,CS_MODE_32
 from capstone.x86 import X86_OP_IMM
-import os; exe=os.environ.get('LT_EXE','/mnt/user-data/uploads/lithtechreal.exe')
+import os; exe=os.environ.get('LT_EXE','lithtechreal.exe')
 pe=pefile.PE(exe); base=pe.OPTIONAL_HEADER.ImageBase; raw=open(exe,'rb').read()
 text=next(s for s in pe.sections if s.Name.startswith(b'.text')); tva=base+text.VirtualAddress; tsz=text.Misc_VirtualSize; tend=tva+tsz
 tb=raw[text.PointerToRawData:text.PointerToRawData+text.SizeOfRawData]
