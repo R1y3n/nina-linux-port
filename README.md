@@ -1,3 +1,7 @@
+<p align="center"><img src="img3.jpg" alt="Nina port image"></p>
+<p align="center"><img src="img2.jpg" alt="Nina port image"></p>
+<p align="center"><img src="img1.jpg" alt="Nina port image"></p>
+
 <div align="center">
   <img src="assets/icon.png" alt="Nina Agent Chronicles" width="148">
   <h1>NINA / LINUX PORT</h1>
