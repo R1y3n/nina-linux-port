@@ -26,6 +26,6 @@ Source-only snapshot of the Linux rebuild of **Nina Agent Chronicles**: the nati
 
 ### Scope
 
-Private working repo. Original executables, generated lift output, `.REZ` game archives, and third-party dependencies stay local and are not part of this snapshot. The work log lives in `docs/HANDOFF.md`.
+Public version of the working repo. Render, physics & audio work from start to finish of the game.
 
-<div align="center"><sub>SOURCE ONLY · PRIVATE · IN PROGRESS</sub></div>
+<div align="center"><sub>SOURCE ONLY · PUBLIC · TERMINATED</sub></div>
