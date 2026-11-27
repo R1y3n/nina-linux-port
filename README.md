@@ -22,6 +22,8 @@ Source-only snapshot of the Linux rebuild of **Nina Agent Chronicles**: the nati
 | `game-dlls/` | Linux-side rebuild patches for the game DLLs |
 | `docs/` | Work log and project notes |
 
+<p align="center"><img src="assets/sample.png" alt="Nina Linux port screenshot"></p>
+
 ### Scope
 
 Private working repo. Original executables, generated lift output, `.REZ` game archives, and third-party dependencies stay local and are not part of this snapshot. The work log lives in `docs/HANDOFF.md`.

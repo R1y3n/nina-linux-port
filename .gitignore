@@ -32,4 +32,4 @@ __pycache__/
 
 # Images: only the README icon is tracked
 *.png
-!assets/img*.png
+!assets/*.png
