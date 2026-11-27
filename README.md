@@ -1,6 +1,6 @@
-<p align="center"><img src="img3.png" alt="Nina port image"></p>
-<p align="center"><img src="img2.png" alt="Nina port image"></p>
-<p align="center"><img src="img1.png" alt="Nina port image"></p>
+<p align="center"><img src="assets/img3.png" alt="Nina port image"></p>
+<p align="center"><img src="assets/img2.png" alt="Nina port image"></p>
+<p align="center"><img src="assets/img1.png" alt="Nina port image"></p>
 
 <div align="center">
   <h1>NINA / LINUX PORT</h1>
